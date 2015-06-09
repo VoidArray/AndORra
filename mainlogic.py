@@ -103,7 +103,7 @@ class MainLogic():
             t.append(endvalue)
             result.append(t)
 
-        return len(self.beginPosition), result
+        return len(self.beginPosition), len(self.endPosition), result
 
 # m = MainLogic(None)
 # m.fileParser()

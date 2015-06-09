@@ -7,7 +7,6 @@ from mainlogic import MainLogic
 class MainWindow(QtGui.QWidget):
 
     def setWire(self):
-        print("wire!")
         self.mcanvas.click_type = "WIRE"
 
     def setAND(self):
@@ -17,7 +16,6 @@ class MainWindow(QtGui.QWidget):
         self.mcanvas.click_type = "OR"
 
     def setNOT(self):
-        print("NOT")
         self.mcanvas.click_type = "NOT"
 
     def setIN(self):
@@ -26,7 +24,27 @@ class MainWindow(QtGui.QWidget):
     def setOUT(self):
         self.mcanvas.click_type = "OUT"
 
-    def saveScheme(self):
+    def clearScheme(self):
+        self.mcanvas.clearAll()
+
+    def saveScheme(self): #сохранение графической схемы
+        file = open("scheme.txt", "w")
+
+        for e in self.mcanvas.elements:
+            type_elem = e["type"].lower
+            if type_elem == "in":
+                file.write(e["type"].lower() + " " + e["coordX"] + " "+ e["coordY"] + " " +
+                           ','.join(map(str, e["out"])) + "\n")
+            else:
+                file.write(e["type"].lower() + " " + e["coordX"] + " "+ e["coordY"] + " " +
+                           ','.join(map(str, e["in"])) + " " + ','.join(map(str, e["out"])) + "\n")
+
+        file.close()
+
+        QtGui.QMessageBox.question(self, 'Message', "Scheme saved", QtGui.QMessageBox.Yes)
+        return
+
+    def saveLogic(self):
         file = open("in.txt", "w")
 
         for e in self.mcanvas.elements:
@@ -39,15 +57,15 @@ class MainWindow(QtGui.QWidget):
 
         file.close()
 
-        QtGui.QMessageBox.question(self, 'Message', "Scheme saved", QtGui.QMessageBox.Yes)
+        QtGui.QMessageBox.question(self, 'Message', "Logic saved", QtGui.QMessageBox.Yes)
         return
 
     def calc(self):
-        self.saveScheme()
+        self.saveLogic()
         l = MainLogic(self)
         l.fileParser()
-        count, values = l.genInputValues()
-        self.mresult.setValueTable(values)
+        countInputs, countOutputs, values = l.genInputValues()
+        self.mresult.setValueTable(countInputs, countOutputs, values)
         return
 
     def __init__(self, parent=None):
@@ -61,7 +79,7 @@ class MainWindow(QtGui.QWidget):
 
         #self.setGeometry(300, 300, 250, 150)
         #self.resize(250, 150)
-        self.setWindowTitle('PyQT LogicScheme Constructor 0.01')
+        self.setWindowTitle('AndORra - конструктор логических схем')
 
         btnWire = QtGui.QPushButton("Wire")
         self.connect(btnWire, QtCore.SIGNAL('clicked()'), self.setWire)
@@ -85,10 +103,13 @@ class MainWindow(QtGui.QWidget):
         self.connect(btnCalc, QtCore.SIGNAL('clicked()'), self.calc)
 
         btnSave = QtGui.QPushButton("Save")
-        self.connect(btnSave, QtCore.SIGNAL('clicked()'), self.saveScheme)
+        self.connect(btnSave, QtCore.SIGNAL('clicked()'), self.saveLogic)
 
         btnQuit = QtGui.QPushButton("QUIT", self)
-        #self.connect(btnAnd, QtCore.SIGNAL('clicked()'), quit)
+        self.connect(btnQuit, QtCore.SIGNAL('clicked()'), quit)
+
+        btnClear = QtGui.QPushButton("Clear", self)
+        self.connect(btnClear, QtCore.SIGNAL('clicked()'), self.clearScheme)
 
         vbox1 = QtGui.QVBoxLayout()
         vbox1.addWidget(btnWire)
@@ -101,6 +122,7 @@ class MainWindow(QtGui.QWidget):
         vbox1.addWidget(btnCalc)
         vbox1.addWidget(btnSave)
         vbox1.addWidget(btnQuit)
+        vbox1.addWidget(btnClear)
 
         vbox2 = QtGui.QVBoxLayout()
         vbox2.addWidget(self.mcanvas)

@@ -17,7 +17,6 @@ class MCanvas(QtGui.QWidget):
 
     stat = ""
 
-
     def __init__(self, parent):
         super(MCanvas, self).__init__(parent)
         self.draggin_idx = -1  #индекс двигаемого элемента
@@ -107,7 +106,21 @@ class MCanvas(QtGui.QWidget):
                 qp.drawLine(p1["coordX"] + self.DELTA * 2, p1["coordY"] + self.DELTA, p2["coordX"], p2["coordY"])
         return
 
-    def mousePressEvent(self, evt): #нажатие левой кнопки мыши
+    def mousePressEvent(self, evt): #нажатие кнопки мыши
+        if evt.button() == QtCore.Qt.RightButton and self.draggin_idx == -1: #правая кнопка мыши - удаляем объект
+            for i, t in enumerate(self.elements):
+                if ((t["coordX"] < evt.pos().x()) and (t["coordX"] + self.DELTA * 2 > evt.pos().x()) and
+                        (t["coordY"] < evt.pos().y()) and (t["coordY"] + self.DELTA * 2 > evt.pos().y())):
+                        for w in self.wires:
+                            if i == w["from"] or i == w["to"]:
+                                self.wires.remove(w)
+                                if i == w["from"]:
+                                    (self.elements[w["to"]])["in"].remove(i)
+                                if i == w["to"]:
+                                    (self.elements[w["from"]])["out"].remove(i)
+                        self.elements.remove(t)
+                        self.update()
+
         if self.draggin_idx != -1 and self.click_type == "WIRE": #проверяем можно ли достроить провод
             for i, t in enumerate(self.elements):
                 if ((t["coordX"] < evt.pos().x()) and (t["coordX"] + self.DELTA * 2 > evt.pos().x()) and
@@ -162,7 +175,15 @@ class MCanvas(QtGui.QWidget):
             t["coordY"] = evt.pos().y() - self.DELTA
             self.elements[self.draggin_idx] = t
             self.draggin_idx = -1
-            self.update()        
+            self.update()
+
+    def clearAll(self):
+        self.wires = list()
+        self.elements = list()
+        self.draggin_idx = -1
+        self.click_type = ""
+        self.update()
+        print("all clear")
 
 # app = QtGui.QApplication([])
 #
