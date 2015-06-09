@@ -105,6 +105,6 @@ class MainLogic():
 
         return len(self.beginPosition), result
 
-m = MainLogic(None)
-m.fileParser()
-m.genInputValues()
+# m = MainLogic(None)
+# m.fileParser()
+# m.genInputValues()
