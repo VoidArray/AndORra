@@ -5,7 +5,7 @@ from PyQt4.QtGui import *
 
 class MCanvas(QtGui.QWidget):
 
-    DELTA = 14 #for the minimum distance
+    DELTA = 16 #for the minimum distance
     click_type = ""
 
     elements = list()
@@ -14,15 +14,23 @@ class MCanvas(QtGui.QWidget):
     #и входные - выходные контакты
     wires = list()
     #dict from и to - индексы в elements
-
+    wiresCount = 0
     stat = ""
 
     def __init__(self, parent):
         super(MCanvas, self).__init__(parent)
-        self.draggin_idx = -1  #индекс двигаемого элемента
-        #self.setGeometry(0,0,200,200)
+        self.clearAll()
 
         self.parent = parent
+
+    def clearAll(self):
+        self.wires = list()
+        self.wiresCount = 0
+        self.elements = list()
+        self.draggin_idx = -1 #индекс двигаемого элемента
+        self.click_type = ""
+        self.update()
+        print("all clear")
 
     def paintEvent(self, e): # событие перерисовки
         qp = QtGui.QPainter()
@@ -44,6 +52,7 @@ class MCanvas(QtGui.QWidget):
             #qp.setBrush(QtGui.QColor(25, 0, 90, 200))
             R = self.DELTA / 2
             qp.setFont(QtGui.QFont('monotype', 8))
+            writedType = ""
 
             if t["type"] == "IN":
                 qp.setPen(QtCore.Qt.black)
@@ -52,6 +61,7 @@ class MCanvas(QtGui.QWidget):
                 qp.drawRect(t["coordX"] + self.DELTA, t["coordY"] + self.DELTA, self.DELTA, R/2)
                 inCounter += 1
                 qp.drawText(t["coordX"], t["coordY"] - R, chr(64 + inCounter))
+                writedType = "IN"
 
             if t["type"] == "OUT":
                 qp.setPen(QtCore.Qt.black)
@@ -61,6 +71,7 @@ class MCanvas(QtGui.QWidget):
                 qp.drawLine(t["coordX"], t["coordY"] + self.DELTA * 2, t["coordX"] + self.DELTA * 2, t["coordY"] + self.DELTA)
                 outCounter += 1
                 qp.drawText(t["coordX"], t["coordY"] - R, chr(64 + outCounter))
+                writedType = "OUT"
 
             if t["type"] == "OR" or t["type"] == "AND": # общее
                 qp.setPen(QtCore.Qt.darkCyan)
@@ -77,8 +88,11 @@ class MCanvas(QtGui.QWidget):
                 qp.drawEllipse(t["coordX"] - R / 2, t["coordY"] + self.DELTA * 2 - R/2, R, R)
                 qp.drawEllipse(t["coordX"] + self.DELTA * 2 - R/2, t["coordY"] + self.DELTA - R/2, R, R)
 
-            #if t["type"] == "OR":
-            #if t["type"] == "AND":
+            if t["type"] == "OR":
+                writedType = "\/"
+
+            if t["type"] == "AND":
+                writedType = "/\\"
 
             if t["type"] == "NOT":
                 qp.setPen(QtCore.Qt.darkCyan)
@@ -88,9 +102,11 @@ class MCanvas(QtGui.QWidget):
 
                 qp.drawEllipse(t["coordX"] - R / 2, t["coordY"] + self.DELTA - R/2, R, R)
                 qp.drawEllipse(t["coordX"] + self.DELTA * 2 - R/2, t["coordY"] + self.DELTA - R/2, R, R)
+                writedType = "¬"
 
             qp.setPen(QtCore.Qt.red) #пишем тип элемента
-            qp.drawText(t["coordX"], t["coordY"] + self.DELTA, t["type"])
+            qp.setFont(QtGui.QFont('monotype', 10))
+            qp.drawText(t["coordX"] + R, t["coordY"] + self.DELTA, writedType)
 
     def drawWires(self, qp): # функция для перерисовки соединяющих проводов
         qp.setPen(QtCore.Qt.black)
@@ -126,9 +142,10 @@ class MCanvas(QtGui.QWidget):
                 if ((t["coordX"] < evt.pos().x()) and (t["coordX"] + self.DELTA * 2 > evt.pos().x()) and
                         (t["coordY"] < evt.pos().y()) and (t["coordY"] + self.DELTA * 2 > evt.pos().y())):
                     self.wires.append({"from": self.draggin_idx, "to": i})
+                    self.wiresCount += 1
                     #далее добавляем в элементы
-                    ((self.elements[i])["in"]).append(len(self.wires))
-                    ((self.elements[self.draggin_idx])["out"]).append(len(self.wires))
+                    ((self.elements[i])["in"]).append(self.wiresCount)
+                    ((self.elements[self.draggin_idx])["out"]).append(self.wiresCount)
                     #
                     self.click_type = ""
                     self.draggin_idx = -1
@@ -176,14 +193,6 @@ class MCanvas(QtGui.QWidget):
             self.elements[self.draggin_idx] = t
             self.draggin_idx = -1
             self.update()
-
-    def clearAll(self):
-        self.wires = list()
-        self.elements = list()
-        self.draggin_idx = -1
-        self.click_type = ""
-        self.update()
-        print("all clear")
 
 # app = QtGui.QApplication([])
 #

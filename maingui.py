@@ -27,21 +27,36 @@ class MainWindow(QtGui.QWidget):
     def clearScheme(self):
         self.mcanvas.clearAll()
 
+    def loadScheme(self): #сохранение графической схемы
+        file = open("scheme.txt", "r")
+        elements = True
+        while(f in file):
+            pass
+
+        file.close()
+
+        QtGui.QMessageBox.information(self, 'Message', "Scheme loaded", QtGui.QMessageBox.Yes)
+        return
+
     def saveScheme(self): #сохранение графической схемы
         file = open("scheme.txt", "w")
 
         for e in self.mcanvas.elements:
             type_elem = e["type"].lower
             if type_elem == "in":
-                file.write(e["type"].lower() + " " + e["coordX"] + " "+ e["coordY"] + " " +
+                file.write(e["type"].lower() + " " + e["coordX"] + " " + e["coordY"] + " " +
                            ','.join(map(str, e["out"])) + "\n")
             else:
-                file.write(e["type"].lower() + " " + e["coordX"] + " "+ e["coordY"] + " " +
+                file.write(e["type"].lower() + " " + e["coordX"] + " " + e["coordY"] + " " +
                            ','.join(map(str, e["in"])) + " " + ','.join(map(str, e["out"])) + "\n")
+
+        file.write("wires")
+        for w in self.mcanvas.wires:
+            file.write(w["from"] + " " + w["to"])
 
         file.close()
 
-        QtGui.QMessageBox.question(self, 'Message', "Scheme saved", QtGui.QMessageBox.Yes)
+        QtGui.QMessageBox.information(self, 'Message', "Scheme saved", QtGui.QMessageBox.Yes)
         return
 
     def saveLogic(self):
@@ -102,6 +117,12 @@ class MainWindow(QtGui.QWidget):
         btnCalc = QtGui.QPushButton("Calc")
         self.connect(btnCalc, QtCore.SIGNAL('clicked()'), self.calc)
 
+        btnSaveScheme = QtGui.QPushButton("Сохранить схему")
+        self.connect(btnSaveScheme, QtCore.SIGNAL('clicked()'), self.saveScheme)
+
+        btnLoadScheme = QtGui.QPushButton("Загрузить схему")
+        self.connect(btnLoadScheme, QtCore.SIGNAL('clicked()'), self.loadScheme)
+
         btnSave = QtGui.QPushButton("Save")
         self.connect(btnSave, QtCore.SIGNAL('clicked()'), self.saveLogic)
 
@@ -120,6 +141,8 @@ class MainWindow(QtGui.QWidget):
         vbox1.addWidget(btnOut)
         vbox1.addStretch(1)
         vbox1.addWidget(btnCalc)
+        vbox1.addWidget(btnLoadScheme)
+        vbox1.addWidget(btnSaveScheme)
         vbox1.addWidget(btnSave)
         vbox1.addWidget(btnQuit)
         vbox1.addWidget(btnClear)

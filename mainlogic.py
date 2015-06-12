@@ -89,9 +89,9 @@ class MainLogic():
         for i in range(0, countVar):
             beginValue = list(bin(i)[2:].zfill(len(self.beginPosition)))
 
-            for i, p in enumerate(self.beginPosition):
+            for k, p in enumerate(self.beginPosition):
                 for p1 in p:
-                    self.allConditions[p1] = {"wrkd": 1, "value": beginValue[i]}
+                    self.allConditions[p1] = {"wrkd": 1, "value": beginValue[k]}
 
             self.calcScheme()
             endvalue = list()
@@ -100,7 +100,7 @@ class MainLogic():
                 endvalue.append(q["value"])
             print("value", beginValue, " ", endvalue)
             t = list(beginValue)
-            t.append(endvalue)
+            t.extend(endvalue)
             result.append(t)
 
         return len(self.beginPosition), len(self.endPosition), result
