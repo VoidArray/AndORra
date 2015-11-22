@@ -1,28 +1,14 @@
 import sys
-from PyQt4 import QtGui, QtCore
+
+from PyQt5.QtWidgets import *
 from mcanvas import MCanvas
 from mresult import MResult
 from mainlogic import MainLogic
 
-class MainWindow(QtGui.QWidget):
+class MainWindow(QWidget):
 
-    def setWire(self):
-        self.mcanvas.click_type = "WIRE"
-
-    def setAND(self):
-        self.mcanvas.click_type = "AND"
-
-    def setOR(self):
-        self.mcanvas.click_type = "OR"
-
-    def setNOT(self):
-        self.mcanvas.click_type = "NOT"
-
-    def setIN(self):
-        self.mcanvas.click_type = "IN"
-
-    def setOUT(self):
-        self.mcanvas.click_type = "OUT"
+    def setElement(self):
+        self.mcanvas.click_type = self.sender().toolTip
 
     def clearScheme(self):
         self.mcanvas.clearAll()
@@ -35,7 +21,7 @@ class MainWindow(QtGui.QWidget):
 
         file.close()
 
-        QtGui.QMessageBox.information(self, 'Message', "Scheme loaded", QtGui.QMessageBox.Yes)
+        QMessageBox.information(self, 'Message', "Scheme loaded", QMessageBox.Yes)
         return
 
     def saveScheme(self): #сохранение графической схемы
@@ -56,7 +42,7 @@ class MainWindow(QtGui.QWidget):
 
         file.close()
 
-        QtGui.QMessageBox.information(self, 'Message', "Scheme saved", QtGui.QMessageBox.Yes)
+        QMessageBox.information(self, 'Message', "Scheme saved", QMessageBox.Yes)
         return
 
     def saveLogic(self):
@@ -72,7 +58,7 @@ class MainWindow(QtGui.QWidget):
 
         file.close()
 
-        QtGui.QMessageBox.question(self, 'Message', "Logic saved", QtGui.QMessageBox.Yes)
+        QMessageBox.question(self,'Message', "Logic saved", QMessageBox.Yes)
         return
 
     def calc(self):
@@ -83,56 +69,62 @@ class MainWindow(QtGui.QWidget):
         self.mresult.setValueTable(countInputs, countOutputs, values)
         return
 
-    def __init__(self, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+    def __init__(self):
+        super().__init__()
 
+        self.initUI()
+
+    def initUI(self):
         self.mcanvas = MCanvas(self)
         self.mcanvas.setMinimumHeight(500)
         self.mcanvas.setMinimumWidth(500)
+        self.setWindowTitle('AndORra - конструктор логических схем')
 
         self.mresult = MResult(self)
 
-        #self.setGeometry(300, 300, 250, 150)
-        #self.resize(250, 150)
-        self.setWindowTitle('AndORra - конструктор логических схем')
+        btnWire = QPushButton("Wire")
+        btnWire.toolTip = "WIRE"
+        btnWire.clicked.connect(self.setElement)
 
-        btnWire = QtGui.QPushButton("Wire")
-        self.connect(btnWire, QtCore.SIGNAL('clicked()'), self.setWire)
+        btnNo = QPushButton("NO")
+        btnNo.toolTip = "NO"
+        btnNo.clicked.connect(self.setElement)
 
-        btnNo = QtGui.QPushButton("NO")
-        self.connect(btnNo, QtCore.SIGNAL('clicked()'), self.setNOT)
+        btnOr = QPushButton("OR")
+        btnOr.toolTip = "OR"
+        btnOr.clicked.connect(self.setElement)
 
-        btnOr = QtGui.QPushButton("OR")
-        self.connect(btnOr, QtCore.SIGNAL('clicked()'), self.setOR)
+        btnAnd = QPushButton("AND")
+        btnAnd.toolTip = "AND"
+        btnAnd.clicked.connect(self.setElement)
 
-        btnAnd = QtGui.QPushButton("AND")
-        self.connect(btnAnd, QtCore.SIGNAL('clicked()'), self.setAND)
+        btnIn = QPushButton("IN")
+        btnIn.toolTip = "IN"
+        btnIn.clicked.connect(self.setElement)
 
-        btnIn = QtGui.QPushButton("IN")
-        self.connect(btnIn, QtCore.SIGNAL('clicked()'), self.setIN)
+        btnOut = QPushButton("OUT")
+        btnOut.toolTip = "OUT"
+        btnOut.clicked.connect(self.setElement)
 
-        btnOut = QtGui.QPushButton("OUT")
-        self.connect(btnOut, QtCore.SIGNAL('clicked()'), self.setOUT)
+        btnCalc = QPushButton("Calc")
+        btnCalc.clicked.connect(self.calc)
 
-        btnCalc = QtGui.QPushButton("Calc")
-        self.connect(btnCalc, QtCore.SIGNAL('clicked()'), self.calc)
+        btnSaveScheme = QPushButton("Сохранить в файл")
+        btnSaveScheme.clicked.connect(self.saveScheme)
 
-        btnSaveScheme = QtGui.QPushButton("Сохранить схему")
-        self.connect(btnSaveScheme, QtCore.SIGNAL('clicked()'), self.saveScheme)
+        btnLoadScheme = QPushButton("Загрузить файл")
+        btnLoadScheme.clicked.connect(self.loadScheme)
 
-        btnLoadScheme = QtGui.QPushButton("Загрузить схему")
-        self.connect(btnLoadScheme, QtCore.SIGNAL('clicked()'), self.loadScheme)
+        btnSave = QPushButton("Save")
+        btnSave.clicked.connect(self.saveLogic)
 
-        btnSave = QtGui.QPushButton("Save")
-        self.connect(btnSave, QtCore.SIGNAL('clicked()'), self.saveLogic)
+        btnQuit = QPushButton("QUIT", self)
+        btnQuit.clicked.connect(quit)
 
-        btnQuit = QtGui.QPushButton("QUIT", self)
-        self.connect(btnQuit, QtCore.SIGNAL('clicked()'), quit)
+        btnClear = QPushButton("Clear", self)
+        btnClear.clicked.connect(self.clearScheme)
 
-        btnClear = QtGui.QPushButton("Clear", self)
-        self.connect(btnClear, QtCore.SIGNAL('clicked()'), self.clearScheme)
-
-        vbox1 = QtGui.QVBoxLayout()
+        vbox1 = QVBoxLayout()
         vbox1.addWidget(btnWire)
         vbox1.addWidget(btnNo)
         vbox1.addWidget(btnOr)
@@ -147,21 +139,23 @@ class MainWindow(QtGui.QWidget):
         vbox1.addWidget(btnQuit)
         vbox1.addWidget(btnClear)
 
-        vbox2 = QtGui.QVBoxLayout()
+        vbox2 = QVBoxLayout()
         vbox2.addWidget(self.mcanvas)
 
-        vbox3 = QtGui.QVBoxLayout()
+        vbox3 = QVBoxLayout()
         vbox3.addWidget(self.mresult)
 
-        hbox = QtGui.QHBoxLayout()
+        hbox = QHBoxLayout()
         hbox.addLayout(vbox1)
         hbox.addLayout(vbox2)
         hbox.addLayout(vbox3)
 
         self.setLayout(hbox)
-        self.setGeometry(300, 300, 800, 500)
+        self.resize(800, 500)
 
-app = QtGui.QApplication(sys.argv)
-main = MainWindow()
-main.show()
-sys.exit(app.exec_())
+        self.show()
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    main = MainWindow()
+    sys.exit(app.exec_())

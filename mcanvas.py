@@ -1,9 +1,9 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import QPoint
 
-class MCanvas(QtGui.QWidget):
+class MCanvas(QWidget):
 
     DELTA = 16 #for the minimum distance
     click_type = ""
@@ -193,9 +193,3 @@ class MCanvas(QtGui.QWidget):
             self.elements[self.draggin_idx] = t
             self.draggin_idx = -1
             self.update()
-
-# app = QtGui.QApplication([])
-#
-# c = MCanvas(None)
-# c.show()
-# app.exec_()

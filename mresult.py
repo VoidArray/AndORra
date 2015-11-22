@@ -1,6 +1,6 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtWidgets, QtCore
 
-class MResult(QtGui.QWidget):
+class MResult(QtWidgets.QWidget):
 
     colCount = 0
     rowCount = 0
