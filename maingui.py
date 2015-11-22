@@ -21,7 +21,7 @@ class MainWindow(QWidget):
 
         file.close()
 
-        QMessageBox.information(self, 'Message', "Scheme loaded", QMessageBox.Yes)
+        self.setStatus("Схема загружена")
         return
 
     def saveScheme(self): #сохранение графической схемы
@@ -39,10 +39,9 @@ class MainWindow(QWidget):
         file.write("wires")
         for w in self.mcanvas.wires:
             file.write(w["from"] + " " + w["to"])
-
         file.close()
 
-        QMessageBox.information(self, 'Message', "Scheme saved", QMessageBox.Yes)
+        self.setStatus("Схема сохранена")
         return
 
     def saveLogic(self):
@@ -58,7 +57,7 @@ class MainWindow(QWidget):
 
         file.close()
 
-        QMessageBox.question(self,'Message', "Logic saved", QMessageBox.Yes)
+        self.setStatus("Logic saved")
         return
 
     def calc(self):
@@ -69,20 +68,26 @@ class MainWindow(QWidget):
         self.mresult.setValueTable(countInputs, countOutputs, values)
         return
 
+    def setStatus(self, status):
+        mainwin.statusBar().showMessage(status)
+
     def __init__(self):
         super().__init__()
 
         self.initUI()
 
     def initUI(self):
+        self.setMinimumHeight(500)
+        self.setMinimumWidth(800)
         self.mcanvas = MCanvas(self)
         self.mcanvas.setMinimumHeight(500)
         self.mcanvas.setMinimumWidth(500)
         self.setWindowTitle('AndORra - конструктор логических схем')
 
         self.mresult = MResult(self)
+        self.mresult.width = 100
 
-        btnWire = QPushButton("Wire")
+        btnWire = QPushButton("Соединить")
         btnWire.toolTip = "WIRE"
         btnWire.clicked.connect(self.setElement)
 
@@ -106,7 +111,7 @@ class MainWindow(QWidget):
         btnOut.toolTip = "OUT"
         btnOut.clicked.connect(self.setElement)
 
-        btnCalc = QPushButton("Calc")
+        btnCalc = QPushButton("Подсчитать")
         btnCalc.clicked.connect(self.calc)
 
         btnSaveScheme = QPushButton("Сохранить в файл")
@@ -152,10 +157,13 @@ class MainWindow(QWidget):
 
         self.setLayout(hbox)
         self.resize(800, 500)
+        self.setStatus("Ready to work")
 
-        self.show()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    mainwin = QMainWindow()
     main = MainWindow()
+    mainwin.setCentralWidget(main)
+    mainwin.show()
     sys.exit(app.exec_())

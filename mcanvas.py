@@ -15,7 +15,6 @@ class MCanvas(QWidget):
     wires = list()
     #dict from и to - индексы в elements
     wiresCount = 0
-    stat = ""
 
     def __init__(self, parent):
         super(MCanvas, self).__init__(parent)
@@ -37,12 +36,7 @@ class MCanvas(QWidget):
         qp.begin(self)
         self.drawElements(qp)
         self.drawWires(qp)
-        self.drawStatMessage(qp)
         qp.end()
-
-    def drawStatMessage(self, qp): #системные сообщения
-        qp.setPen(QtCore.Qt.black) #пишем
-        qp.drawText(0, self.height() - self.DELTA, self.stat)
 
     def drawElements(self, qp): # функция для перерисовки фигур
         inCounter = 0
@@ -149,7 +143,7 @@ class MCanvas(QWidget):
                     #
                     self.click_type = ""
                     self.draggin_idx = -1
-                    self.stat == "Wire created"
+                    self.parent.setStatus("Wire created")
                     print("wire created", self.draggin_idx)
 
         if evt.button() == QtCore.Qt.LeftButton and self.draggin_idx == -1 and \
@@ -161,7 +155,7 @@ class MCanvas(QWidget):
                     print("drag element id", self.draggin_idx)
 
                     if self.click_type == "WIRE":
-                        self.stat = "Wait second element"
+                        self.parent.setStatus("Выделите второй элемент")
 
         if self.click_type != "WIRE" and self.click_type != "": #Добавление элемента
             e = dict()
@@ -173,7 +167,7 @@ class MCanvas(QWidget):
             self.click_type = ""
             self.elements.append(e)
             print("add element", e["type"], len(self.elements))
-            self.stat == "Добавлен элемент"
+            self.parent.setStatus("Добавлен элемент")
             self.update()
             return
 
