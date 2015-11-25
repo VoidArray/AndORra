@@ -1,8 +1,5 @@
-from logicOR import LogicOR
-from logicAND import LogicAND
-from logicNO import LogicNO
-from time import sleep
 import re
+from logic import *
 
 class MainLogic():
 
@@ -67,13 +64,10 @@ class MainLogic():
             else:
                 outlist = re.split("[,|\s]*", line[2])
                 inlist = line[1]
-                t = None
-                if line[0].find("or") > -1:
-                    t = LogicOR(inlist, outlist)
-                elif line[0].find("and") > -1:
-                    t = LogicAND(inlist, outlist)
-                elif line[0].find("no") > -1:
-                    t = LogicNO(inlist, outlist)
+                if line[0] in LogicPt.logicModules:
+                    t = globals()[LogicPt.logicModules[line[0]]](inlist, outlist)
+                else:
+                    raise Exception('Invalid input element: ' + line[0])
                 self.allElements.append(t)
                 for q in outlist:
                     self.allConditions[q] = {"wrkd": 0, "value": 0}
@@ -105,6 +99,7 @@ class MainLogic():
 
         return len(self.beginPosition), len(self.endPosition), result
 
-# m = MainLogic(None)
-# m.fileParser()
-# m.genInputValues()
+if __name__ == "__main__":
+    m = MainLogic(None)
+    m.fileParser()
+    m.genInputValues()
