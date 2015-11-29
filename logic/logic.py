@@ -11,7 +11,7 @@ class LogicPt:
     обозначение в файле : Имя класса
     """
 
-    def __init__(self, i, o):
+    def __init__(self):
         """
         Расстанавливаются начальные значения.
         Они должны отличаться от типа элемента к типу и задаются в этом модуле
@@ -20,23 +20,20 @@ class LogicPt:
         self.count_output = 0  # 0-бесконечность
         """Количество входов и выходов."""
 
-        self.input = i
-        self.output = o
-        """Получаем значения из параметров."""
-
         """Далее параметры для отображения. Их GUI сам добавит"""
         self.coordX = -1
         self.coordY = -1  # Координаты верхнего левого угла
 
-        self.link_in = list()
-        self.link_out = list()
+        self.link = dict()  # используется так: { coord_conn[id] : id element}
 
         self.id = ""
 
         """Параметры, которые задаются только вручную:"""
         self.coord_form = list()  # Координаты формы полигона
-        self.coord_input = [[0.5, 0.5, 0.1]]
-        self.coord_output = [[0.5, 0.5, 0.1]]
+        self.coord_conn = [
+            [0.5, 0.5, 0.1, "in"],
+            [0.5, 0.5, 0.1, "out"]
+        ]
         """
         self.coord_input = list()
         Только для отрисовки на canvas.
@@ -44,14 +41,14 @@ class LogicPt:
         self.coord_output.add(list(x, y, radius))
         """
         self.name = "pt"
-        self.writed_name = "."  # Отображаемое название
+        self.writed_name = "pt"  # Отображаемое название
         return
 
-    def setCoord(self, x, y):
-        self.coordX = x
-        self.coordY = y
-        return
+    def setValues(self, i, o):
+        self.input = i
+        self.output = o
 
+    @staticmethod
     def calc(self, v):
         """
         Функция описывает как обрабатывается входящие значение и подсчитывается результат.

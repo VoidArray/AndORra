@@ -3,4 +3,6 @@ from .logic import LogicPt
 from .logicNO import LogicNO
 from .logicOR import LogicOR
 from .logicAND import LogicAND
+from .logicIN import LogicIN
+from .logicOUT import LogicOUT
 

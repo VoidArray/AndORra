@@ -4,3 +4,4 @@ __pycache__/
 .directory
 in.txt
 doc/
+*.el

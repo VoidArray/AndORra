@@ -1,4 +1,5 @@
 import sys
+import pickle
 
 from PyQt5.QtWidgets import *
 from mcanvas import MCanvas
@@ -13,50 +14,58 @@ class MainWindow(QWidget):
     def clearScheme(self):
         self.mcanvas.clearAll()
 
-    def loadScheme(self): #сохранение графической схемы
-        file = open("scheme.txt", "r")
-        elements = True
-        while(f in file):
-            pass
+    def loadScheme(self): #загрузка графической схемы
+        file_name = QFileDialog.getOpenFileName()
+        print("load from", file_name[0])
+        f = open(file_name[0], "rb")
+        self.mcanvas.elements = pickle.load(f)
+        self.mcanvas.wires = pickle.load(f)
+        f.close()
 
-        file.close()
-
-        self.setStatus("Схема загружена")
+        self.setStatus("Схема загружена" + file_name[0])
         return
 
     def saveScheme(self): #сохранение графической схемы
-        file = open("scheme.txt", "w")
+        file_name = QFileDialog.getSaveFileName()
+        print("Save to", file_name[0])
+        f = open(file_name[0] + ".el", "wb")
+        pickle.dump(self.mcanvas.elements, f)
+        pickle.dump(self.mcanvas.wires, f)
+        f.close()
 
-        for e in self.mcanvas.elements:
-            type_elem = e["type"].lower
-            if type_elem == "in":
-                file.write(e["type"].lower() + " " + e["coordX"] + " " + e["coordY"] + " " +
-                           ','.join(map(str, e["out"])) + "\n")
-            else:
-                file.write(e["type"].lower() + " " + e["coordX"] + " " + e["coordY"] + " " +
-                           ','.join(map(str, e["in"])) + " " + ','.join(map(str, e["out"])) + "\n")
-
-        file.write("wires")
-        for w in self.mcanvas.wires:
-            file.write(w["from"] + " " + w["to"])
-        file.close()
-
-        self.setStatus("Схема сохранена")
+        self.setStatus("Схема сохранена в файл " + file_name[0])
         return
 
     def saveLogic(self):
         file = open("in.txt", "w")
 
-        for e in self.mcanvas.elements:
-            type_elem = e["type"].lower
-            if type_elem == "in":
-                file.write(e["type"].lower() + ','.join(map(str, e["out"])) + "\n")
+        for t in self.mcanvas.elements:
+            e = self.mcanvas.elements[t]
+            input_id = list()
+            output_id = list()
+
+            if len(e.link) < len(e.coord_conn):  # не все входы-выходы заполнены у элемента
+                continue
+
+            for j, w in enumerate(self.mcanvas.wires):
+                if w["id1"] == e.id:
+                    num = w["num1"]
+                elif w["id2"] == e.id:
+                    num = w["num2"]
+                else:
+                    continue
+                if e.coord_conn[num][3] == "in":
+                    input_id.append(j)
+                else:
+                    output_id.append(j)
+
+            if e.name.lower == "in":
+                file.write(e.name.lower() + " " + e.id + ','.join(map(str, output_id)) + "\n")
             else:
-                file.write(e["type"].lower() + " " + ','.join(map(str, e["in"])) + " "
-                            + ','.join(map(str, e["out"])) + "\n")
+                file.write(e.name.lower() + " " + e.id + " " + ','.join(map(str, input_id)) + " " +
+                           ','.join(map(str, output_id)) + "\n")
 
         file.close()
-
         self.setStatus("Logic saved")
         return
 
@@ -74,9 +83,6 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.initUI()
-
-    def initUI(self):
         self.setMinimumHeight(500)
         self.setMinimumWidth(800)
         self.mcanvas = MCanvas(self)
@@ -91,8 +97,12 @@ class MainWindow(QWidget):
         btnWire.toolTip = "WIRE"
         btnWire.clicked.connect(self.setElement)
 
-        btnNo = QPushButton("NO")
-        btnNo.toolTip = "NO"
+        btnPt = QPushButton("PT")
+        btnPt.toolTip = "PT"
+        btnPt.clicked.connect(self.setElement)
+
+        btnNo = QPushButton("NOT")
+        btnNo.toolTip = "NOT"
         btnNo.clicked.connect(self.setElement)
 
         btnOr = QPushButton("OR")
@@ -131,6 +141,7 @@ class MainWindow(QWidget):
 
         vbox1 = QVBoxLayout()
         vbox1.addWidget(btnWire)
+        vbox1.addWidget(btnPt)
         vbox1.addWidget(btnNo)
         vbox1.addWidget(btnOr)
         vbox1.addWidget(btnAnd)
@@ -166,4 +177,7 @@ if __name__ == '__main__':
     main = MainWindow()
     mainwin.setCentralWidget(main)
     mainwin.show()
-    sys.exit(app.exec_())
+    st = app.exec_()
+    print("exit")
+    sys.exit(st)
+

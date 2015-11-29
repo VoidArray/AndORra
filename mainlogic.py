@@ -47,25 +47,25 @@ class MainLogic():
             line[0] = line[0].lower()
             if len(line) < 2: #Элемент без соединений, пропускаем
                 continue
+            # line[1] with id
+            line[2] = re.split("[,|\s]*", line[2])
 
-            line[1] = re.split("[,|\s]*", line[1])
-
-            if len(line) < 3:
+            if len(line) < 4:
                 if line[0].find("out") > -1:
-                    self.endPosition |= set(line[1])
-                    for q in line[1]:
+                    self.endPosition |= set(line[2])
+                    for q in line[2]:
                         self.allConditions[q] = {"wrkd": 0, "value": 0}
 
                 if line[0].find("in") > -1:
-                    self.beginPosition.append(line[1])
-                    #print(beginPosition, line[1])
-                    for q in line[1]:
+                    self.beginPosition.append(line[2])
+                    for q in line[2]:
                         self.allConditions[q] = {"wrkd": 1, "value": 0}
             else:
-                outlist = re.split("[,|\s]*", line[2])
-                inlist = line[1]
+                outlist = re.split("[,|\s]*", line[3])
+                inlist = line[2]
                 if line[0] in LogicPt.logicModules:
-                    t = globals()[LogicPt.logicModules[line[0]]](inlist, outlist)
+                    t = globals()[LogicPt.logicModules[line[0]]]()
+                    t.setValues(inlist, outlist)
                 else:
                     raise Exception('Invalid input element: ' + line[0])
                 self.allElements.append(t)
