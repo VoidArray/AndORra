@@ -28,7 +28,7 @@ class MainWindow(QWidget):
     def saveScheme(self): #сохранение графической схемы
         file_name = QFileDialog.getSaveFileName()
         print("Save to", file_name[0])
-        f = open(file_name[0] + ".el", "wb")
+        f = open(file_name[0], "wb")
         pickle.dump(self.mcanvas.elements, f)
         pickle.dump(self.mcanvas.wires, f)
         f.close()

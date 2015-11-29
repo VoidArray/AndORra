@@ -64,8 +64,8 @@ class MCanvas(QWidget):
             qp.setPen(QtCore.Qt.gray)
             qp.setBrush(QtCore.Qt.gray)
             for c in element.coord_conn:
-                qp.drawEllipse(element.coordX + c[0] * self.DELTA - c[2] * 4,
-                               element.coordY + c[1] * self.DELTA - c[2] * 4,
+                qp.drawEllipse(QPoint(int(element.coordX + c[0] * self.DELTA - c[2] * 4),
+                               int(element.coordY + c[1] * self.DELTA - c[2] * 4)),
                                c[2] * R, c[2] * R)
             # Пишем тип элемента
             qp.setPen(QtCore.Qt.red)
@@ -92,7 +92,7 @@ class MCanvas(QWidget):
         if len(self.selected_connection) > 2:
             qp.setPen(QtCore.Qt.yellow)
             qp.setBrush(QtCore.Qt.yellow)
-            qp.drawEllipse(self.selected_connection["x"], self.selected_connection["y"],
+            qp.drawEllipse(QPoint(self.selected_connection["x"], self.selected_connection["y"]),
                     self.selected_connection["r"], self.selected_connection["r"])
 
     def delConnectByElemId(self, idToDel):
@@ -213,14 +213,14 @@ class MCanvas(QWidget):
                         (t.coordY < evt.pos().y()) and (t.coordY + self.DELTA * 2 > evt.pos().y())):
                     # Далее как-то перебрать контакты
                     for i, link in enumerate(t.coord_conn):
-                        if ((t.coordX + link[0] * self.DELTA - self.DELTA < evt.pos().x())
-                                and (t.coordX + link[0] * self.DELTA + self.DELTA > evt.pos().x())
-                                and (t.coordY + link[1] * self.DELTA - self.DELTA < evt.pos().y())
-                                and (t.coordY + link[1] * self.DELTA + self.DELTA > evt.pos().y())):
+                        if ((t.coordX + link[0] * self.DELTA - link[2] * self.DELTA < evt.pos().x())
+                                and (t.coordX + link[0] * self.DELTA + link[2] * self.DELTA > evt.pos().x())
+                                and (t.coordY + link[1] * self.DELTA - link[2] * self.DELTA < evt.pos().y())
+                                and (t.coordY + link[1] * self.DELTA + link[2] * self.DELTA > evt.pos().y())):
                             # Нашли нужное место, далее надо его выделить цветом
                             self.selected_connection = {"x": int(t.coordX + link[0] * self.DELTA),
                                                         "y": int(t.coordY + link[1] * self.DELTA),
-                                                        "r": int(link[2] * self.DELTA),
+                                                        "r": int(link[2] * self.DELTA / 3),
                                                         "type": link[3], "num": i, "id": t.id}
                             finded = True
                             self.update()

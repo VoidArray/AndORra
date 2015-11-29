@@ -31,8 +31,8 @@ class LogicPt:
         """Параметры, которые задаются только вручную:"""
         self.coord_form = list()  # Координаты формы полигона
         self.coord_conn = [
-            [0.5, 0.5, 0.1, "in"],
-            [0.5, 0.5, 0.1, "out"]
+            [0.3, 0.5, 0.25, "in"],
+            [0.8, 0.5, 0.25, "out"]
         ]
         """
         self.coord_input = list()
@@ -48,7 +48,6 @@ class LogicPt:
         self.input = i
         self.output = o
 
-    @staticmethod
     def calc(self, v):
         """
         Функция описывает как обрабатывается входящие значение и подсчитывается результат.
