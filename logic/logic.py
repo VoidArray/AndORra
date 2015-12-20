@@ -24,7 +24,7 @@ class LogicPt:
         self.coordX = -1
         self.coordY = -1  # Координаты верхнего левого угла
 
-        self.link = dict()  # используется так: { coord_conn[id] : id element}
+        self.link = dict()  # используется так: { coord_conn[id] : list(id element) }
 
         self.id = ""
 

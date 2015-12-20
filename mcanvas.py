@@ -1,14 +1,11 @@
 import random
-
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import QPoint
-
 from logic import *
 
 
 class MCanvas(QWidget):
-
     DELTA = 32  # Размеры каждого элемента и радиус при отрисовке
 
     def __init__(self, parent):
@@ -35,7 +32,7 @@ class MCanvas(QWidget):
         self.parent.setStatus("Все детали удалены")
         print("all clear")
 
-    def paintEvent(self, e): # событие перерисовки
+    def paintEvent(self, e):  # событие перерисовки
         qp = QtGui.QPainter()
         qp.begin(self)
         self.drawElements(qp)
@@ -65,7 +62,7 @@ class MCanvas(QWidget):
             qp.setBrush(QtCore.Qt.gray)
             for c in element.coord_conn:
                 qp.drawEllipse(QPoint(int(element.coordX + c[0] * self.DELTA - c[2] * 4),
-                               int(element.coordY + c[1] * self.DELTA - c[2] * 4)),
+                                      int(element.coordY + c[1] * self.DELTA - c[2] * 4)),
                                c[2] * R, c[2] * R)
             # Пишем тип элемента
             qp.setPen(QtCore.Qt.red)
@@ -75,11 +72,11 @@ class MCanvas(QWidget):
             qp.setPen(QtCore.Qt.black)
             if element.name.upper() == "IN":
                 count_in += 1
-                qp.drawText(element.coordX, element.coordY - R, chr(64 + count_in))
+                qp.drawText(element.coordX, element.coordY, chr(64 + count_in))
 
             if element.name.upper() == "OUT":
                 сount_out += 1
-                qp.drawText(element.coordX, element.coordY - R, chr(64 + сount_out))
+                qp.drawText(element.coordX, element.coordY, chr(64 + сount_out))
         return
 
     def drawWires(self, qp):  # функция для перерисовки соединяющих проводов
@@ -93,60 +90,85 @@ class MCanvas(QWidget):
             qp.setPen(QtCore.Qt.yellow)
             qp.setBrush(QtCore.Qt.yellow)
             qp.drawEllipse(QPoint(self.selected_connection["x"], self.selected_connection["y"]),
-                    self.selected_connection["r"], self.selected_connection["r"])
+                           self.selected_connection["r"], self.selected_connection["r"])
 
-    def delConnectByElemId(self, idToDel):
-        for w in self.wires:
+    def delAllWireByElemId(self, idToDel):
+        for w in list(self.wires):
             if idToDel == w["id1"]:
                 id_linked_element = w["id2"]
+                numConnect = w["num2"]
             elif idToDel == w["id2"]:
                 id_linked_element = w["id1"]
+                numConnect = w["num1"]
             else:
                 continue
-            if idToDel in (self.elements[id_linked_element]).link:
-                (self.elements[id_linked_element]).link_in.remove(idToDel)
+            if idToDel in list((self.elements[id_linked_element]).link[numConnect]):
+                ((self.elements[id_linked_element]).link[numConnect]).remove(idToDel)
             self.wires.remove(w)
 
-    def mousePressEvent(self, evt): #нажатие кнопки мыши
-        if evt.button() == QtCore.Qt.RightButton and self.draggin_idx == -1: #правая кнопка мыши - удаляем объект
+    def delOneWire(self, id1, id2):
+        for w in self.wires:
+            if id1 == w["id1"] and id2 == w["id2"] \
+                    or id1 == w["id2"] and id2 == w["id1"]:
+                self.wires.remove(w)
+
+    def mousePressEvent(self, evt):  # нажатие кнопки мыши
+        if evt.button() == QtCore.Qt.RightButton and self.draggin_idx == -1:  # правая кнопка мыши - удаляем объект
             for id_key in list(self.elements.keys()):
                 element = self.elements[id_key]
                 if ((element.coordX < evt.pos().x()) and (element.coordX + self.DELTA * 2 > evt.pos().x()) and
                         (element.coordY < evt.pos().y()) and (element.coordY + self.DELTA * 2 > evt.pos().y())):
                     idToDel = element.id
-                    self.delConnectByElemId(idToDel)
+                    self.delAllWireByElemId(idToDel)
                     print("del ", element.name, element.id)
                     self.parent.setStatus("Удален элемент " + element.name)
                     del self.elements[id_key]
                     self.update()
 
-        if self.draggin_idx != -1 and self.click_type == "WIRE" and len(self.selected_connection) > 0: # проверяем можно ли достроить провод
+        if self.draggin_idx != -1 and self.click_type == "WIRE" and len(
+                self.selected_connection) > 0:  # проверяем можно ли достроить провод
             print("Try WIRE!")
-            # Перебор полный не нужен, так как у нас есть значение после event
-            if self.wire_begin["type"] != self.selected_connection["type"]:  # соединений между inner - inner не должно быть
-                elem2 = self.elements[self.selected_connection["id"]]  # Проверим наличие других связок в этих местах
-                if self.selected_connection["num"] in elem2.link:
-                    del elem2.link[self.selected_connection["num"]]
-                    self.delConnectByElemId(elem2.id)
-                    print("ReWrite value at conn")
-
+            # Перебор полный не нужен, так как у нас есть значение selected_connection
+            if self.wire_begin["type"] != self.selected_connection[
+                "type"]:  # соединений между inner - inner не должно быть
+                # Проверяем наличие других связок в этих местах
+                print("Type true")
                 elem1 = self.elements[self.wire_begin["id"]]
-                if self.wire_begin["num"] in elem1.link:
-                    del elem1.link[self.wire_begin["num"]]
-                    self.delConnectByElemId(elem1.id)
-                    print("ReWrite value at conn")
+                elem2 = self.elements[self.selected_connection["id"]]
 
+                if self.selected_connection["num"] in elem2.link:
+                    if self.selected_connection["type"] != "out":  # исходящих может быть любое количество
+                        self.delOneWire(elem2.id, elem2.link[self.selected_connection["num"]])
+                        del elem2.link[self.selected_connection["num"]]
+                        print("ReWrite value at conn")
+                        elem2.link[self.selected_connection["num"]] = list(elem1.id)
+                    else:
+                        (elem2.link[self.selected_connection["num"]]).append(elem1.id)
+                else:
+                    elem2.link[self.selected_connection["num"]] = list(elem1.id)
+
+                if self.wire_begin["num"] in elem1.link:
+                    if self.wire_begin["type"] != "out":  # исходящих может быть любое количество
+                        self.delOneWire(elem1.id, elem1.link[self.wire_begin["num"]])
+                        del elem1.link[self.wire_begin["num"]]
+                        self.delConnectByElemId(elem1.id)
+                        print("ReWrite value at conn")
+                        elem1.link[self.wire_begin["num"]] = list(elem2.id)
+                    else:
+                        (elem1.link[self.wire_begin["num"]]).append(elem2.id)
+                else:
+                    elem1.link[self.wire_begin["num"]] = list(elem2.id)
+                #
                 self.wires.append({"id2": elem2.id, "id1": elem1.id,
                                    "num2": self.selected_connection["num"],
                                    "num1": self.wire_begin["num"],
-                                    "coordX2": elem2.coordX + elem2.coord_conn[self.selected_connection["num"]][0] * self.DELTA,
-                                    "coordY2": elem2.coordY + elem2.coord_conn[self.selected_connection["num"]][1] * self.DELTA,
-                                    "coordX1": elem1.coordX + elem1.coord_conn[self.wire_begin["num"]][0] * self.DELTA,
-                                    "coordY1": elem1.coordY + elem1.coord_conn[self.wire_begin["num"]][1] * self.DELTA
+                                   "coordX2": elem2.coordX + elem2.coord_conn[self.selected_connection["num"]][
+                                                                 0] * self.DELTA,
+                                   "coordY2": elem2.coordY + elem2.coord_conn[self.selected_connection["num"]][
+                                                                 1] * self.DELTA,
+                                   "coordX1": elem1.coordX + elem1.coord_conn[self.wire_begin["num"]][0] * self.DELTA,
+                                   "coordY1": elem1.coordY + elem1.coord_conn[self.wire_begin["num"]][1] * self.DELTA
                                    })
-                #далее добавляем в элементы
-                elem2.link[self.selected_connection["num"]] = elem1.id
-                elem1.link[self.wire_begin["num"]] = elem2.id
                 #
                 self.click_type = ""
                 self.draggin_idx = -1
@@ -156,7 +178,8 @@ class MCanvas(QWidget):
                 self.parent.setStatus("Соединять нужно вход к выходу или наоборот.")
 
         if evt.button() == QtCore.Qt.LeftButton and self.draggin_idx == -1 and \
-                (self.click_type == "" or self.click_type == "WIRE"):  # выделение элемента или начало построения провода
+                (
+                                self.click_type == "" or self.click_type == "WIRE"):  # выделение элемента или начало построения провода
             for i, element in enumerate(self.elements):
                 element = self.elements[element]
                 if ((element.coordX < evt.pos().x()) and (element.coordX + self.DELTA * 2 > evt.pos().x()) and
@@ -178,7 +201,7 @@ class MCanvas(QWidget):
             element.coordY = evt.pos().y() - self.DELTA / 2
 
             char_set = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"  # Генератор id
-            element.id = self.click_type + ''.join(random.sample(char_set*6, 6))
+            element.id = self.click_type + ''.join(random.sample(char_set * 6, 6))
 
             self.elements[element.id] = element
             print("add element", element.name, element.id, len(self.elements))
@@ -203,34 +226,34 @@ class MCanvas(QWidget):
                     conn_coord = t.coord_conn[w["num2"]]
                     w["coordX2"] = t.coordX + conn_coord[0] * self.DELTA
                     w["coordY2"] = t.coordY + conn_coord[1] * self.DELTA
-            self.update()
 
         # Ищем и выделяем цветом контакт на элементе
         finded = False
         for t in self.elements:
-                t = self.elements[t]
-                if ((t.coordX < evt.pos().x()) and (t.coordX + self.DELTA * 2 > evt.pos().x()) and
-                        (t.coordY < evt.pos().y()) and (t.coordY + self.DELTA * 2 > evt.pos().y())):
-                    # Далее как-то перебрать контакты
-                    for i, link in enumerate(t.coord_conn):
-                        if ((t.coordX + link[0] * self.DELTA - link[2] * self.DELTA < evt.pos().x())
-                                and (t.coordX + link[0] * self.DELTA + link[2] * self.DELTA > evt.pos().x())
-                                and (t.coordY + link[1] * self.DELTA - link[2] * self.DELTA < evt.pos().y())
-                                and (t.coordY + link[1] * self.DELTA + link[2] * self.DELTA > evt.pos().y())):
-                            # Нашли нужное место, далее надо его выделить цветом
-                            self.selected_connection = {"x": int(t.coordX + link[0] * self.DELTA),
-                                                        "y": int(t.coordY + link[1] * self.DELTA),
-                                                        "r": int(link[2] * self.DELTA / 3),
-                                                        "type": link[3], "num": i, "id": t.id}
-                            finded = True
-                            self.update()
-                            break
-                if finded:
-                    break
+            t = self.elements[t]
+            if ((t.coordX < evt.pos().x()) and (t.coordX + self.DELTA * 2 > evt.pos().x()) and
+                    (t.coordY < evt.pos().y()) and (t.coordY + self.DELTA * 2 > evt.pos().y())):
+                # Далее как-то перебрать контакты
+                for i, link in enumerate(t.coord_conn):
+                    if ((t.coordX + link[0] * self.DELTA - link[2] * self.DELTA < evt.pos().x())
+                        and (t.coordX + link[0] * self.DELTA + link[2] * self.DELTA > evt.pos().x())
+                        and (t.coordY + link[1] * self.DELTA - link[2] * self.DELTA < evt.pos().y())
+                        and (t.coordY + link[1] * self.DELTA + link[2] * self.DELTA > evt.pos().y())):
+                        # Нашли нужное место, далее надо его выделить цветом
+                        self.selected_connection = {"x": int(t.coordX + link[0] * self.DELTA),
+                                                    "y": int(t.coordY + link[1] * self.DELTA),
+                                                    "r": int(link[2] * self.DELTA / 3),
+                                                    "type": link[3], "num": i, "id": t.id}
+                        finded = True
+                        break
+            if finded:
+                break
         if not finded:
             self.selected_connection = dict()
 
-    def mouseReleaseEvent(self, evt): #изменение координат после отпускания кнопки
+        self.update()
+
+    def mouseReleaseEvent(self, evt):  # изменение координат после отпускания кнопки
         if evt.button() == QtCore.Qt.LeftButton and self.draggin_idx != -1 and self.click_type != "WIRE":
             t = self.elements[self.draggin_idx]
             t.coordX = evt.pos().x() - self.delta_grag_x

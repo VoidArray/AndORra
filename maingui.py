@@ -14,26 +14,30 @@ class MainWindow(QWidget):
     def clearScheme(self):
         self.mcanvas.clearAll()
 
-    def loadScheme(self): #загрузка графической схемы
+    def openFileDialog(self):
         file_name = QFileDialog.getOpenFileName()
         print("load from", file_name[0])
-        f = open(file_name[0], "rb")
+        self.loadScheme(file_name[0])
+
+    def loadScheme(self, fileName): #загрузка графической схемы
+        f = open(fileName, "rb")
         self.mcanvas.elements = pickle.load(f)
         self.mcanvas.wires = pickle.load(f)
         f.close()
-
-        self.setStatus("Схема загружена" + file_name[0])
+        self.setStatus("Схема загружена" + fileName)
         return
 
-    def saveScheme(self): #сохранение графической схемы
+    def saveFileDialog(self):
         file_name = QFileDialog.getSaveFileName()
         print("Save to", file_name[0])
-        f = open(file_name[0], "wb")
+        self.saveScheme(file_name[0])
+
+    def saveScheme(self, fileName): #сохранение графической схемы
+        f = open(fileName, "wb")
         pickle.dump(self.mcanvas.elements, f)
         pickle.dump(self.mcanvas.wires, f)
         f.close()
-
-        self.setStatus("Схема сохранена в файл " + file_name[0])
+        self.setStatus("Схема сохранена в файл " + fileName)
         return
 
     def saveLogic(self):
@@ -45,6 +49,7 @@ class MainWindow(QWidget):
             output_id = list()
 
             if len(e.link) < len(e.coord_conn):  # не все входы-выходы заполнены у элемента
+                print("wrong connection", e.id)
                 continue
 
             for j, w in enumerate(self.mcanvas.wires):
@@ -125,10 +130,10 @@ class MainWindow(QWidget):
         btnCalc.clicked.connect(self.calc)
 
         btnSaveScheme = QPushButton("Сохранить в файл")
-        btnSaveScheme.clicked.connect(self.saveScheme)
+        btnSaveScheme.clicked.connect(self.saveFileDialog)
 
         btnLoadScheme = QPushButton("Загрузить файл")
-        btnLoadScheme.clicked.connect(self.loadScheme)
+        btnLoadScheme.clicked.connect(self.openFileDialog)
 
         btnSave = QPushButton("Save")
         btnSave.clicked.connect(self.saveLogic)
@@ -175,6 +180,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     mainwin = QMainWindow()
     main = MainWindow()
+    main.loadScheme("456")
     mainwin.setCentralWidget(main)
     mainwin.show()
     st = app.exec_()
