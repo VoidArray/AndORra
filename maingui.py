@@ -93,7 +93,6 @@ class MainWindow(QWidget):
         self.mcanvas = MCanvas(self)
         self.mcanvas.setMinimumHeight(500)
         self.mcanvas.setMinimumWidth(500)
-        self.setWindowTitle('AndORra - конструктор логических схем')
 
         self.mresult = MResult(self)
         self.mresult.width = 100
@@ -179,6 +178,7 @@ class MainWindow(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     mainwin = QMainWindow()
+    mainwin.setWindowTitle('AndORra - конструктор логических схем')
     main = MainWindow()
     main.loadScheme("456")
     mainwin.setCentralWidget(main)

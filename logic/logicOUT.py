@@ -15,10 +15,10 @@ class LogicOUT(LogicPt):
         """Количество входов и выходов."""
 
         # Hard parametrs
-        self.coord_form = list()  # Координаты формы полигона
-        self.coord_conn = [
-            [0.5, 0.5, 0.5, "in"]
-        ]
+        self.coord_form = tuple()  # Координаты формы полигона
+        self.coord_conn = (
+            (0.5, 0.5, 0.5, "in"),
+        )
 
         self.name = "out"
         self.writed_name = "out"  # Отображаемое название

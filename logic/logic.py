@@ -29,11 +29,11 @@ class LogicPt:
         self.id = ""
 
         """Параметры, которые задаются только вручную:"""
-        self.coord_form = list()  # Координаты формы полигона
-        self.coord_conn = [
-            [0.3, 0.5, 0.25, "in"],
-            [0.8, 0.5, 0.25, "out"]
-        ]
+        self.coord_form = tuple()  # Координаты формы полигона
+        self.coord_conn = (
+            (0.4, 0.5, 0.3, "in"),
+            (0.7, 0.5, 0.3, "out")
+        )
         """
         self.coord_input = list()
         Только для отрисовки на canvas.

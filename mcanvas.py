@@ -6,7 +6,7 @@ from logic import *
 
 
 class MCanvas(QWidget):
-    DELTA = 32  # Размеры каждого элемента и радиус при отрисовке
+    DELTA = 32  # Размеры каждого элемента и диаметр при отрисовке
 
     def __init__(self, parent):
         super().__init__()
@@ -46,7 +46,6 @@ class MCanvas(QWidget):
         for t in self.elements:  # Перебираем все элементы
             element = self.elements[t]
             R = self.DELTA / 2
-            qp.setFont(QtGui.QFont('monotype', 8))
             qp.setPen(QtCore.Qt.black)
             qp.setBrush(QtCore.Qt.black)
             # Получаем все точки для отрисовки полигона
@@ -61,9 +60,9 @@ class MCanvas(QWidget):
             qp.setPen(QtCore.Qt.gray)
             qp.setBrush(QtCore.Qt.gray)
             for c in element.coord_conn:
-                qp.drawEllipse(QPoint(int(element.coordX + c[0] * self.DELTA - c[2] * 4),
-                                      int(element.coordY + c[1] * self.DELTA - c[2] * 4)),
-                               c[2] * R, c[2] * R)
+                qp.drawEllipse(QPoint(int(element.coordX + c[0] * self.DELTA),
+                                      int(element.coordY + c[1] * self.DELTA)),
+                               int(c[2] * R), int(c[2] * R))
             # Пишем тип элемента
             qp.setPen(QtCore.Qt.red)
             qp.setFont(QtGui.QFont('monotype', 10))
@@ -91,6 +90,12 @@ class MCanvas(QWidget):
             qp.setBrush(QtCore.Qt.yellow)
             qp.drawEllipse(QPoint(self.selected_connection["x"], self.selected_connection["y"]),
                            self.selected_connection["r"], self.selected_connection["r"])
+
+        if len(self.wire_begin) > 2:
+            qp.setPen(QtCore.Qt.yellow)
+            qp.setBrush(QtCore.Qt.red)
+            qp.drawEllipse(QPoint(self.wire_begin["x"], self.wire_begin["y"]),
+                           self.wire_begin["r"], self.wire_begin["r"])
 
     def delAllWireByElemId(self, idToDel):
         for w in list(self.wires):
@@ -129,8 +134,7 @@ class MCanvas(QWidget):
                 self.selected_connection) > 0:  # проверяем можно ли достроить провод
             print("Try WIRE!")
             # Перебор полный не нужен, так как у нас есть значение selected_connection
-            if self.wire_begin["type"] != self.selected_connection[
-                "type"]:  # соединений между inner - inner не должно быть
+            if self.wire_begin["type"] != self.selected_connection["type"]:  # соединений между inner - inner не должно быть
                 # Проверяем наличие других связок в этих местах
                 print("Type true")
                 elem1 = self.elements[self.wire_begin["id"]]
@@ -173,26 +177,24 @@ class MCanvas(QWidget):
                 self.click_type = ""
                 self.draggin_idx = -1
                 self.parent.setStatus("Соединение создано")
+                self.wire_begin.clear()
                 print("wire created", self.draggin_idx)
             else:
                 self.parent.setStatus("Соединять нужно вход к выходу или наоборот.")
 
         if evt.button() == QtCore.Qt.LeftButton and self.draggin_idx == -1 and \
-                (
-                                self.click_type == "" or self.click_type == "WIRE"):  # выделение элемента или начало построения провода
+                (self.click_type == "" or self.click_type == "WIRE"):  # выделение элемента или начало построения провода
             for i, element in enumerate(self.elements):
                 element = self.elements[element]
-                if ((element.coordX < evt.pos().x()) and (element.coordX + self.DELTA * 2 > evt.pos().x()) and
-                        (element.coordY < evt.pos().y()) and (element.coordY + self.DELTA * 2 > evt.pos().y())):
+                if ((element.coordX < evt.pos().x()) and (element.coordX + self.DELTA > evt.pos().x()) and
+                        (element.coordY < evt.pos().y()) and (element.coordY + self.DELTA > evt.pos().y())):
                     self.draggin_idx = element.id
                     self.delta_grag_x = evt.pos().x() - element.coordX
                     self.delta_grag_y = evt.pos().y() - element.coordY
                     print("drag element id", self.draggin_idx)
 
                     if (self.click_type == "WIRE") and (len(self.selected_connection) > 2):
-                        self.wire_begin["id"] = self.selected_connection["id"]
-                        self.wire_begin["type"] = self.selected_connection["type"]
-                        self.wire_begin["num"] = self.selected_connection["num"]
+                        self.wire_begin = dict(self.selected_connection)
                         self.parent.setStatus("Выделите второй элемент")
 
         if self.click_type != "WIRE" and self.click_type != "":  # Добавление нового элемента
@@ -231,8 +233,8 @@ class MCanvas(QWidget):
         finded = False
         for t in self.elements:
             t = self.elements[t]
-            if ((t.coordX < evt.pos().x()) and (t.coordX + self.DELTA * 2 > evt.pos().x()) and
-                    (t.coordY < evt.pos().y()) and (t.coordY + self.DELTA * 2 > evt.pos().y())):
+            if ((t.coordX < evt.pos().x()) and (t.coordX + self.DELTA > evt.pos().x()) and
+                    (t.coordY < evt.pos().y()) and (t.coordY + self.DELTA > evt.pos().y())):
                 # Далее как-то перебрать контакты
                 for i, link in enumerate(t.coord_conn):
                     if ((t.coordX + link[0] * self.DELTA - link[2] * self.DELTA < evt.pos().x())
@@ -249,7 +251,7 @@ class MCanvas(QWidget):
             if finded:
                 break
         if not finded:
-            self.selected_connection = dict()
+            self.selected_connection.clear()
 
         self.update()
 
