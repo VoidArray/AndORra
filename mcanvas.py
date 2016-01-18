@@ -1,4 +1,6 @@
 import random
+import math
+
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import QPoint
@@ -79,7 +81,8 @@ class MCanvas(QWidget):
         return
 
     def drawWires(self, qp):  # функция для перерисовки соединяющих проводов
-        qp.setPen(QtCore.Qt.black)
+        blackPen = QtGui.QPen(QtCore.Qt.black, 2, QtCore.Qt.DashLine)
+        qp.setPen(blackPen)
         for t in self.wires:
             qp.drawLine(t["coordX1"], t["coordY1"], t["coordX2"], t["coordY2"])
         return
@@ -112,23 +115,48 @@ class MCanvas(QWidget):
             self.wires.remove(w)
 
     def delOneWire(self, id1, id2):
+        assert type(id1) is str and type(id2) is str
         for w in self.wires:
-            if id1 == w["id1"] and id2 == w["id2"] \
-                    or id1 == w["id2"] and id2 == w["id1"]:
+            if id1 == w["id1"] and id2 == w["id2"] or id1 == w["id2"] and id2 == w["id1"]:
                 self.wires.remove(w)
 
     def mousePressEvent(self, evt):  # нажатие кнопки мыши
         if evt.button() == QtCore.Qt.RightButton and self.draggin_idx == -1:  # правая кнопка мыши - удаляем объект
+            isElementDeleted = False
             for id_key in list(self.elements.keys()):
                 element = self.elements[id_key]
-                if ((element.coordX < evt.pos().x()) and (element.coordX + self.DELTA * 2 > evt.pos().x()) and
-                        (element.coordY < evt.pos().y()) and (element.coordY + self.DELTA * 2 > evt.pos().y())):
+                if ((element.coordX < evt.pos().x()) and (element.coordX + self.DELTA > evt.pos().x()) and
+                        (element.coordY < evt.pos().y()) and (element.coordY + self.DELTA > evt.pos().y())):
                     idToDel = element.id
                     self.delAllWireByElemId(idToDel)
                     print("del ", element.name, element.id)
                     self.parent.setStatus("Удален элемент " + element.name)
                     del self.elements[id_key]
                     self.update()
+                    isElementDeleted = True
+
+            if not isElementDeleted:  # Не был найден подходящий элемент, ищем провод для удаления
+                distance = list()
+                for w in self.wires:
+                    d = math.fabs(  # Находим расстояние между каждым проводом и координатами клика
+                        ((w["coordY2"] - w["coordY1"]) * evt.pos().x() + (w["coordX1"] - w["coordX2"]) * evt.pos().y() +
+                        (w["coordX2"] * w["coordY1"] - w["coordX1"] * w["coordY2"])) /
+                        math.sqrt(math.pow(w["coordX1"] - w["coordX2"], 2) + math.pow(w["coordY1"] - w["coordY2"], 2))
+                    )
+                    distance.append(d)
+                # Далее находим самый близкий провод
+                min_distance = distance[0]
+                min_idx = 0
+                for i, d in enumerate(distance):
+                    if d < min_distance:
+                        min_distance = d
+                        min_idx = i
+                # Удаляем провод
+                w = self.wires[min_idx]
+                print("min distance: ", min_distance, min_idx, w["id1"], w["id2"])
+                (self.elements[w["id1"]].link[w["num1"]]).remove(w["id2"])
+                (self.elements[w["id2"]].link[w["num2"]]).remove(w["id1"])
+                self.wires.remove(w)
 
         if self.draggin_idx != -1 and self.click_type == "WIRE" and len(
                 self.selected_connection) > 0:  # проверяем можно ли достроить провод
@@ -142,26 +170,21 @@ class MCanvas(QWidget):
 
                 if self.selected_connection["num"] in elem2.link:
                     if self.selected_connection["type"] != "out":  # исходящих может быть любое количество
-                        self.delOneWire(elem2.id, elem2.link[self.selected_connection["num"]])
-                        del elem2.link[self.selected_connection["num"]]
+                        self.delOneWire(elem2.id, elem2.link[self.selected_connection["num"]][0])
                         print("ReWrite value at conn")
-                        elem2.link[self.selected_connection["num"]] = list(elem1.id)
-                    else:
-                        (elem2.link[self.selected_connection["num"]]).append(elem1.id)
+                        elem2.link[self.selected_connection["num"]] = list()
+                    (elem2.link[self.selected_connection["num"]]).append(elem1.id)
                 else:
-                    elem2.link[self.selected_connection["num"]] = list(elem1.id)
+                    elem2.link[self.selected_connection["num"]] = [elem1.id, ]
 
                 if self.wire_begin["num"] in elem1.link:
                     if self.wire_begin["type"] != "out":  # исходящих может быть любое количество
-                        self.delOneWire(elem1.id, elem1.link[self.wire_begin["num"]])
-                        del elem1.link[self.wire_begin["num"]]
-                        self.delConnectByElemId(elem1.id)
+                        self.delOneWire(elem1.id, elem1.link[self.wire_begin["num"]][0])
                         print("ReWrite value at conn")
-                        elem1.link[self.wire_begin["num"]] = list(elem2.id)
-                    else:
-                        (elem1.link[self.wire_begin["num"]]).append(elem2.id)
+                        elem1.link[self.wire_begin["num"]] = list()
+                    (elem1.link[self.wire_begin["num"]]).append(elem2.id)
                 else:
-                    elem1.link[self.wire_begin["num"]] = list(elem2.id)
+                    elem1.link[self.wire_begin["num"]] = [elem2.id, ]
                 #
                 self.wires.append({"id2": elem2.id, "id1": elem1.id,
                                    "num2": self.selected_connection["num"],
@@ -257,9 +280,10 @@ class MCanvas(QWidget):
 
     def mouseReleaseEvent(self, evt):  # изменение координат после отпускания кнопки
         if evt.button() == QtCore.Qt.LeftButton and self.draggin_idx != -1 and self.click_type != "WIRE":
+            coordX = evt.pos().x() if evt.pos().x() >= 0 else 0
+            coordY = evt.pos().y() if evt.pos().y() >= 0 else 0
             t = self.elements[self.draggin_idx]
-            t.coordX = evt.pos().x() - self.delta_grag_x
-            t.coordY = evt.pos().y() - self.delta_grag_y
-            self.elements[self.draggin_idx] = t
+            t.coordX = coordX - self.delta_grag_x
+            t.coordY = coordY - self.delta_grag_y
             self.draggin_idx = -1
             self.update()
