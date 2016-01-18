@@ -165,10 +165,10 @@ class MainWindow(QWidget):
         vbox3 = QVBoxLayout()
         vbox3.addWidget(self.mresult)
 
-        hbox = QHBoxLayout()
-        hbox.addLayout(vbox1)
-        hbox.addLayout(vbox2)
-        hbox.addLayout(vbox3)
+        hbox = QGridLayout()
+        hbox.addLayout(vbox1, 0, 0)
+        hbox.addLayout(vbox2, 0, 1, 1, 6)
+        hbox.addLayout(vbox3, 0, 7)
 
         self.setLayout(hbox)
         self.resize(800, 500)
@@ -180,7 +180,7 @@ if __name__ == '__main__':
     mainwin = QMainWindow()
     mainwin.setWindowTitle('AndORra - конструктор логических схем')
     main = MainWindow()
-    main.loadScheme("456")
+    main.loadScheme("123.el")
     mainwin.setCentralWidget(main)
     mainwin.show()
     st = app.exec_()
