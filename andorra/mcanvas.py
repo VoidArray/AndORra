@@ -4,11 +4,12 @@ import math
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import QPoint
-from logic import *
+
+from andorra.logic import *
 
 
 class MCanvas(QWidget):
-    DELTA = 32  # Размеры каждого элемента и диаметр при отрисовке
+    DELTA = 64  # Размеры каждого элемента и диаметр при отрисовке
 
     def __init__(self, parent):
         super().__init__()
@@ -45,19 +46,26 @@ class MCanvas(QWidget):
     def drawElements(self, qp):  # функция для перерисовки фигур
         count_in = 0
         сount_out = 0
-        for t in self.elements:  # Перебираем все элементы
-            element = self.elements[t]
+        for element_id in self.elements:  # Перебираем все элементы
+            element = self.elements[element_id]
             R = self.DELTA / 2
             qp.setPen(QtCore.Qt.black)
             qp.setBrush(QtCore.Qt.black)
-            # Получаем все точки для отрисовки полигона
-            polygon_coord = list()
-            for c in element.coord_form:
-                p = QPoint(element.coordX + c[0] * self.DELTA, element.coordY + c[1] * self.DELTA)
-                polygon_coord.append(p)
-            # Рисуем форму
-            if len(polygon_coord) > 2:
-                qp.drawPolygon(QtGui.QPolygon(polygon_coord))
+            if element.image_file:
+                # Рисуем иконку
+                image_name = 'img/' + element.image_file
+                element_image = QtGui.QPixmap(image_name)
+                element_image = element_image.scaled(self.DELTA, self.DELTA, QtCore.Qt.KeepAspectRatio)
+                qp.drawPixmap(element.coordX, element.coordY, element_image)
+            else:
+                # Получаем все точки для отрисовки полигона
+                polygon_coord = list()
+                for c in element.coord_form:
+                    p = QPoint(element.coordX + c[0] * self.DELTA, element.coordY + c[1] * self.DELTA)
+                    polygon_coord.append(p)
+                # Рисуем форму
+                if len(polygon_coord) > 2:
+                    qp.drawPolygon(QtGui.QPolygon(polygon_coord))
             # Рисуем точки соединений
             qp.setPen(QtCore.Qt.gray)
             qp.setBrush(QtCore.Qt.gray)

@@ -1,5 +1,7 @@
 import re
-from logic import *
+
+from andorra.logic import *
+
 
 class MainLogic():
 

@@ -1,5 +1,6 @@
 from PyQt5 import QtGui, QtWidgets, QtCore
 
+
 class MResult(QtWidgets.QWidget):
 
     colCount = 0

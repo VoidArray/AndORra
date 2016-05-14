@@ -1,13 +1,14 @@
-import sys
 import pickle
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
-from mcanvas import MCanvas
-from mresult import MResult
-from mainlogic import MainLogic
 
-class MainWindow(QWidget):
+from andorra.mcanvas import MCanvas
+from andorra.mresult import MResult
+from andorra.mainlogic import MainLogic
+
+
+class CentralWidget(QWidget):
 
     def setElement(self):
         self.mcanvas.click_type = self.sender().toolTip
@@ -84,9 +85,10 @@ class MainWindow(QWidget):
         return
 
     def setStatus(self, status):
-        mainwin.statusBar().showMessage(status)
+        # mainwin.statusBar().showMessage(status)
+        pass
 
-    def __init__(self, menubar):
+    def __init__(self):
         super().__init__()
 
         self.setMinimumHeight(500)
@@ -97,82 +99,6 @@ class MainWindow(QWidget):
 
         self.mresult = MResult(self)
         self.mresult.width = 100
-        self.menubar = menubar
-
-        # init menu
-        actionWire = QAction(QIcon('img/wire.png'), 'Wire', self)
-        actionWire.setShortcut('w')
-        actionWire.setStatusTip('Connect elements')
-        actionWire.toolTip = 'WIRE'
-        actionWire.triggered.connect(self.setElement)
-
-        actionPt = QAction(QIcon('img/point.png'), 'Ppint', self)
-        actionPt.setShortcut('p')
-        actionPt.toolTip = 'PT'
-        actionPt.triggered.connect(self.setElement)
-
-        actionNo = QAction(QIcon('img/no.png'), 'NOT', self)
-        actionNo.toolTip = 'NOT'
-        actionNo.setShortcut('n')
-        actionNo.triggered.connect(self.setElement)
-
-        actionOr = QAction(QIcon('img/or.png'), 'OR', self)
-        actionOr.toolTip = 'OR'
-        actionOr.setShortcut('r')
-        actionOr.triggered.connect(self.setElement)
-
-        actionAnd = QAction(QIcon('img/and.png'), 'AND', self)
-        actionAnd.toolTip = 'AND'
-        actionAnd.setShortcut('a')
-        actionAnd.triggered.connect(self.setElement)
-
-        actionIn = QAction(QIcon('img/in.png'), 'IN', self)
-        actionIn.toolTip = 'IN'
-        actionIn.setShortcut('i')
-        actionIn.triggered.connect(self.setElement)
-
-        actionOut = QAction(QIcon('img/in.png'), 'OUT', self)
-        actionOut.toolTip = 'OUT'
-        actionOut.setShortcut('e')
-        actionOut.triggered.connect(self.setElement)
-
-        actionCalc = QAction(QIcon('img/point.png'), 'Подсчитать', self)
-        actionCalc.setShortcut('ctrl+c')
-        actionCalc.triggered.connect(self.calc)
-
-        actionSaveScheme = QAction(QIcon('img/point.png'), 'Сохранить в файл', self)
-        actionSaveScheme.setShortcut('ctrl+s')
-        actionSaveScheme.triggered.connect(self.saveFileDialog)
-
-        actionLoadScheme = QAction(QIcon('img/point.png'), 'Загрузить файл', self)
-        actionLoadScheme.setShortcut('ctrl+o')
-        actionLoadScheme.triggered.connect(self.openFileDialog)
-
-        # actionSave = QPushButton('Save')
-        # actionSave.setShortcut('ctrl+s')
-        # actionSave.triggered.connect(self.saveLogic)
-
-        actionQuit = QAction(QIcon('img/point.png'), 'QUIT', self)
-        actionQuit.setShortcut('ctrl+q')
-        actionQuit.triggered.connect(quit)
-
-        actionClear = QAction(QIcon('img/point.png'), 'Clear', self)
-        actionClear.setShortcut('del')
-        actionClear.triggered.connect(self.clearScheme)
-
-        schemeMenu = self.menubar.addMenu('&Схема')
-        schemeMenu.addAction(actionCalc)
-        schemeMenu.addAction(actionSaveScheme)
-        schemeMenu.addAction(actionLoadScheme)
-        schemeMenu.addAction(actionQuit)
-
-        elemMenu = self.menubar.addMenu('&Элементы')
-        elemMenu.addAction(actionWire)
-        elemMenu.addAction(actionIn)
-        elemMenu.addAction(actionOut)
-        elemMenu.addAction(actionOr)
-        elemMenu.addAction(actionAnd)
-        elemMenu.addAction(actionPt)
         # simple buttons
         btnWire = QPushButton(QIcon('img/wire.png'), 'Соединить')
         btnWire.toolTip = 'WIRE'
@@ -198,7 +124,7 @@ class MainWindow(QWidget):
         btnIn.toolTip = 'IN'
         btnIn.clicked.connect(self.setElement)
 
-        btnOut = QPushButton(QIcon('img/in.png'), 'OUT')
+        btnOut = QPushButton(QIcon('img/out.png'), 'OUT')
         btnOut.toolTip = 'OUT'
         btnOut.clicked.connect(self.setElement)
 
@@ -220,17 +146,3 @@ class MainWindow(QWidget):
         self.setLayout(grid_box)
         self.resize(800, 500)
         self.setStatus('Ready to work')
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    mainwin = QMainWindow()
-    mainwin.setWindowTitle('AndORra - конструктор логических схем')
-    main = MainWindow(mainwin.menuBar())
-    main.loadScheme('123.el')
-    mainwin.setCentralWidget(main)
-    mainwin.show()
-    st = app.exec_()
-    print('exit')
-    sys.exit(st)
-
