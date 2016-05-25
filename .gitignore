@@ -3,5 +3,5 @@ __pycache__/
 .idea/
 .directory
 in.txt
-doc/
-*.el
+
+

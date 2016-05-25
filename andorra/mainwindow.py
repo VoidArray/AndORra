@@ -14,7 +14,7 @@ class MainWindow(QMainWindow):
 
         self.setMinimumHeight(500)
         self.setMinimumWidth(800)
-
+        self.setWindowTitle('AndORra - конструктор схем')
         self.menubar = self.menuBar()
         self.central_widget = CentralWidget()
 
@@ -93,6 +93,8 @@ class MainWindow(QMainWindow):
         elemMenu.addAction(actionAnd)
         elemMenu.addAction(actionPt)
 
+        optionsMenu = self.menubar.addMenu('&Настройки')
+
         self.resize(800, 500)
         self.setCentralWidget(self.central_widget)
         self.setStatus('Ready to work')
@@ -100,6 +102,9 @@ class MainWindow(QMainWindow):
     def setStatus(self, status):
         self.statusBar().showMessage(status)
 
-    def loadScheme(self, fileName): #загрузка графической схемы
+    def loadScheme(self, fileName):
+        """
+        загрузка графической схемы
+        """
         self.central_widget.loadScheme(fileName)
         self.setStatus('Схема загружена' + fileName)

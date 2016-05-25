@@ -5,7 +5,7 @@ from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import QPoint
 
-from andorra.logic import *
+import andorra.logic
 
 
 class MCanvas(QWidget):
@@ -89,7 +89,7 @@ class MCanvas(QWidget):
         return
 
     def drawWires(self, qp):  # функция для перерисовки соединяющих проводов
-        blackPen = QtGui.QPen(QtCore.Qt.black, 2, QtCore.Qt.DashLine)
+        blackPen = QtGui.QPen(QtCore.Qt.black, 2, QtCore.Qt.SolidLine)
         qp.setPen(blackPen)
         for t in self.wires:
             qp.drawLine(t["coordX1"], t["coordY1"], t["coordX2"], t["coordY2"])

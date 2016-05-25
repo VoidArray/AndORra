@@ -7,7 +7,6 @@ from andorra.mainwindow import MainWindow
 
 app = QApplication(sys.argv)
 mainwindow = MainWindow()
-mainwindow.setWindowTitle('AndORra - конструктор логических схем')
 mainwindow.loadScheme('schemes/and_or.el')
 mainwindow.show()
 st = app.exec_()
