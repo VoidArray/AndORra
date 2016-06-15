@@ -5,7 +5,7 @@ from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import QPoint
 
-import andorra.logic
+from andorra.logic import *
 
 
 class MCanvas(QWidget):
@@ -51,24 +51,25 @@ class MCanvas(QWidget):
             R = self.DELTA / 2
             qp.setPen(QtCore.Qt.black)
             qp.setBrush(QtCore.Qt.black)
-            if element.image_file:
+            if hasattr(element, 'image_file') and element.image_file:
                 # Рисуем иконку
                 image_name = 'img/' + element.image_file
                 element_image = QtGui.QPixmap(image_name)
                 element_image = element_image.scaled(self.DELTA, self.DELTA, QtCore.Qt.KeepAspectRatio)
                 qp.drawPixmap(element.coordX, element.coordY, element_image)
             else:
-                # Получаем все точки для отрисовки полигона
-                polygon_coord = list()
-                for c in element.coord_form:
-                    p = QPoint(element.coordX + c[0] * self.DELTA, element.coordY + c[1] * self.DELTA)
-                    polygon_coord.append(p)
-                # Рисуем форму
-                if len(polygon_coord) > 2:
-                    qp.drawPolygon(QtGui.QPolygon(polygon_coord))
+                # Получаем все точки для отрисовки формы в виде полигона
+                if len(element.coord_form) > 2:
+                    polygon_coord = list()
+                    for c in element.coord_form:
+                        p = QPoint(element.coordX + c[0] * self.DELTA, element.coordY + c[1] * self.DELTA)
+                        polygon_coord.append(p)
+                    # Рисуем форму
+                    if len(polygon_coord) > 2:
+                        qp.drawPolygon(QtGui.QPolygon(polygon_coord))
             # Рисуем точки соединений
-            qp.setPen(QtCore.Qt.gray)
-            qp.setBrush(QtCore.Qt.gray)
+            qp.setPen(QtCore.Qt.black)
+            qp.setBrush(QtCore.Qt.black)
             for c in element.coord_conn:
                 qp.drawEllipse(QPoint(int(element.coordX + c[0] * self.DELTA),
                                       int(element.coordY + c[1] * self.DELTA)),
@@ -86,14 +87,14 @@ class MCanvas(QWidget):
             if element.name.upper() == "OUT":
                 сount_out += 1
                 qp.drawText(element.coordX, element.coordY, chr(64 + сount_out))
-        return
 
     def drawWires(self, qp):  # функция для перерисовки соединяющих проводов
         blackPen = QtGui.QPen(QtCore.Qt.black, 2, QtCore.Qt.SolidLine)
         qp.setPen(blackPen)
         for t in self.wires:
-            qp.drawLine(t["coordX1"], t["coordY1"], t["coordX2"], t["coordY2"])
-        return
+            # qp.drawLine(t["coordX1"], t["coordY1"], t["coordX2"], t["coordY2"])
+            qp.drawLine(t["coordX1"], t["coordY1"], t["coordX1"], t["coordY2"])
+            qp.drawLine(t["coordX1"], t["coordY2"], t["coordX2"], t["coordY2"])
 
     def drawSelectedConnect(self, qp):
         if len(self.selected_connection) > 2:
@@ -142,7 +143,7 @@ class MCanvas(QWidget):
                     del self.elements[id_key]
                     self.update()
                     isElementDeleted = True
-
+            print('elem to del not found')
             if not isElementDeleted:  # Не был найден подходящий элемент, ищем провод для удаления
                 distance = list()
                 for w in self.wires:
@@ -159,15 +160,26 @@ class MCanvas(QWidget):
                     if d < min_distance:
                         min_distance = d
                         min_idx = i
-                # Удаляем провод
-                w = self.wires[min_idx]
-                print("min distance: ", min_distance, min_idx, w["id1"], w["id2"])
-                (self.elements[w["id1"]].link[w["num1"]]).remove(w["id2"])
-                (self.elements[w["id2"]].link[w["num2"]]).remove(w["id1"])
-                self.wires.remove(w)
+                # Удаляем провод если расстояние меньше DELTA
+                if min_distance < self.DELTA:
+                    w = self.wires[min_idx]
+                    print("min distance: ", min_distance, min_idx, w["id1"], w["id2"], )
+                    element_1 = self.elements[w["id1"]]
+                    element_1_list = element_1.link[w["num1"]]
+                    if w["id2"] in element_1_list:
+                        element_1_list.remove(w["id2"])
 
-        if self.draggin_idx != -1 and self.click_type == "WIRE" and len(
-                self.selected_connection) > 0:  # проверяем можно ли достроить провод
+                    element_2 = self.elements[w["id2"]]
+                    element_2_list = element_1.link[w["num2"]]
+                    if w["id1"] in element_2_list:
+                        element_2_list.remove(w["id1"])
+
+                    # (self.elements[w["id1"]].link[w["num1"]]).remove(w["id2"])
+                    # (self.elements[w["id2"]].link[w["num2"]]).remove(w["id1"])
+                    self.wires.remove(w)
+
+        if self.draggin_idx != -1 and self.click_type == "WIRE" and len(self.selected_connection) > 0:
+            # проверяем можно ли достроить провод
             print("Try WIRE!")
             # Перебор полный не нужен, так как у нас есть значение selected_connection
             if self.wire_begin["type"] != self.selected_connection["type"]:  # соединений между inner - inner не должно быть
@@ -176,15 +188,15 @@ class MCanvas(QWidget):
                 elem1 = self.elements[self.wire_begin["id"]]
                 elem2 = self.elements[self.selected_connection["id"]]
 
-                if self.selected_connection["num"] in elem2.link:
-                    if self.selected_connection["type"] != "out":  # исходящих может быть любое количество
-                        self.delOneWire(elem2.id, elem2.link[self.selected_connection["num"]][0])
-                        print("ReWrite value at conn")
-                        elem2.link[self.selected_connection["num"]] = list()
-                    (elem2.link[self.selected_connection["num"]]).append(elem1.id)
-                else:
-                    elem2.link[self.selected_connection["num"]] = [elem1.id, ]
-
+                # if self.selected_connection["num"] in elem2.link:
+                #     if self.selected_connection["type"] != "out":  # исходящих может быть любое количество
+                #         self.delOneWire(elem2.id, elem2.link[self.selected_connection["num"]][0])
+                #         print("ReWrite value at conn")
+                #         elem2.link[self.selected_connection["num"]] = list()
+                #     (elem2.link[self.selected_connection["num"]]).append(elem1.id)
+                # else:
+                #     elem2.link[self.selected_connection["num"]] = [elem1.id, ]
+                print('count check')
                 if self.wire_begin["num"] in elem1.link:
                     if self.wire_begin["type"] != "out":  # исходящих может быть любое количество
                         self.delOneWire(elem1.id, elem1.link[self.wire_begin["num"]][0])
@@ -193,7 +205,7 @@ class MCanvas(QWidget):
                     (elem1.link[self.wire_begin["num"]]).append(elem2.id)
                 else:
                     elem1.link[self.wire_begin["num"]] = [elem2.id, ]
-                #
+                print('count check 2')
                 self.wires.append({"id2": elem2.id, "id1": elem1.id,
                                    "num2": self.selected_connection["num"],
                                    "num1": self.wire_begin["num"],
@@ -229,7 +241,8 @@ class MCanvas(QWidget):
                         self.parent.setStatus("Выделите второй элемент")
 
         if self.click_type != "WIRE" and self.click_type != "":  # Добавление нового элемента
-            element = globals()[LogicPt.logicModules[self.click_type.lower()]]()
+            element_type = LogicPt.logicModules[self.click_type.lower()]
+            element = globals()[element_type]()
             element.coordX = evt.pos().x() - self.DELTA / 2
             element.coordY = evt.pos().y() - self.DELTA / 2
 
@@ -241,7 +254,6 @@ class MCanvas(QWidget):
             self.parent.setStatus("Добавлен элемент " + element.writed_name)
             self.click_type = ""
             self.update()
-            return
 
     def mouseMoveEvent(self, evt):  # Изменение координат во время движения мыши
         if self.draggin_idx != -1 and self.click_type != "WIRE":

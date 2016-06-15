@@ -47,7 +47,7 @@ class MainLogic():
         for line in f:
             line = re.split("\s+", line.strip())
             line[0] = line[0].lower()
-            if len(line) < 2: #Элемент без соединений, пропускаем
+            if len(line) < 2:  # Элемент без соединений, пропускаем
                 continue
             # line[1] with id
             line[2] = re.split("[,|\s]*", line[2])
@@ -81,7 +81,7 @@ class MainLogic():
         print("Processing...")
         result = list()
         countVar = 2**len(self.beginPosition)
-        print("Всего вариантов,", countVar)
+        # print("Всего вариантов,", countVar)
         for i in range(0, countVar):
             beginValue = list(bin(i)[2:].zfill(len(self.beginPosition)))
 

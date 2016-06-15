@@ -19,7 +19,7 @@ class LogicIN(LogicPt):
         )
 
         self.name = 'in'
-        self.writed_name = 'in'  # Отображаемое название
+        self.writed_name = 'IN'  # Отображаемое название
         self.image_file = None  # 'in.png'
 
     def calc(self, v):

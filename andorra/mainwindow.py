@@ -16,7 +16,7 @@ class MainWindow(QMainWindow):
         self.setMinimumWidth(800)
         self.setWindowTitle('AndORra - конструктор схем')
         self.menubar = self.menuBar()
-        self.central_widget = CentralWidget()
+        self.central_widget = CentralWidget(self.setStatus)
 
         # init menu
         actionWire = QAction(QIcon('img/wire.png'), 'Wire', self)
@@ -71,18 +71,19 @@ class MainWindow(QMainWindow):
         # actionSave.setShortcut('ctrl+s')
         # actionSave.triggered.connect(self.saveLogic)
 
-        actionQuit = QAction(QIcon('img/point.png'), 'QUIT', self)
+        actionQuit = QAction(QIcon('img/point.png'), 'Выход', self)
         actionQuit.setShortcut('ctrl+q')
         actionQuit.triggered.connect(quit)
 
-        actionClear = QAction(QIcon('img/point.png'), 'Clear', self)
-        actionClear.setShortcut('del')
+        actionClear = QAction(QIcon('img/point.png'), 'Очистить', self)
+        actionClear.setShortcut('ctrl+del')
         actionClear.triggered.connect(self.central_widget.clearScheme)
 
         schemeMenu = self.menubar.addMenu('&Схема')
         schemeMenu.addAction(actionCalc)
         schemeMenu.addAction(actionSaveScheme)
         schemeMenu.addAction(actionLoadScheme)
+        schemeMenu.addAction(actionClear)
         schemeMenu.addAction(actionQuit)
 
         elemMenu = self.menubar.addMenu('&Элементы')
@@ -97,7 +98,7 @@ class MainWindow(QMainWindow):
 
         self.resize(800, 500)
         self.setCentralWidget(self.central_widget)
-        self.setStatus('Ready to work')
+        self.setStatus('Готов к работе')
 
     def setStatus(self, status):
         self.statusBar().showMessage(status)

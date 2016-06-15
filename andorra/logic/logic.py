@@ -30,8 +30,8 @@ class LogicPt:
         '''Параметры, которые задаются только вручную:'''
         self.coord_form = tuple()  # Координаты формы полигона
         self.coord_conn = (
-            (0.1, 0.5, 0.2, 'in'),
-            (0.9, 0.5, 0.2, 'out')
+            (0.45, 0.5, 0.2, 'in'),
+            (0.55, 0.5, 0.2, 'out')
         )
         '''
         self.coord_input = list()
@@ -40,8 +40,8 @@ class LogicPt:
         self.coord_output.add(list(x, y, radius))
         '''
         self.name = 'pt'
-        self.writed_name = 'pt'  # Отображаемое название
-        self.image_file = 'point.png'
+        self.writed_name = ''  # Отображаемое название
+        # self.image_file = 'point.png'
 
     def setValues(self, i, o):
         self.input = i

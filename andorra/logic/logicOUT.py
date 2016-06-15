@@ -23,7 +23,7 @@ class LogicOUT(LogicPt):
         )
 
         self.name = 'out'
-        self.writed_name = 'out'  # Отображаемое название
+        self.writed_name = 'OUT'  # Отображаемое название
         self.image_file = None  # 'out.png'
 
     def calc(self, v):

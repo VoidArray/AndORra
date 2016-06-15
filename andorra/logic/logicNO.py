@@ -23,7 +23,7 @@ class LogicNO(LogicPt):
             (0.9, 0.5, 0.2, 'out')
         )
 
-        self.name = 'no'
+        self.name = 'not'
         self.writed_name = 'NOT'  # Отображаемое название
         self.image_file = 'not.png'
 

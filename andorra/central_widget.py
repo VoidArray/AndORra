@@ -50,9 +50,9 @@ class CentralWidget(QWidget):
             input_id = list()
             output_id = list()
 
-            if len(e.link) < len(e.coord_conn):  # не все входы-выходы заполнены у элемента
-                print('wrong connection', e.id)
-                continue
+            # if len(e.link) < len(e.coord_conn):  # не все входы-выходы заполнены у элемента
+            #     print('wrong connection', e.id)
+            #     continue
 
             for j, w in enumerate(self.mcanvas.wires):
                 if w['id1'] == e.id:
@@ -74,7 +74,6 @@ class CentralWidget(QWidget):
 
         file.close()
         self.setStatus('Logic saved')
-        return
 
     def calc(self):
         self.saveLogic()
@@ -82,15 +81,11 @@ class CentralWidget(QWidget):
         l.fileParser()
         countInputs, countOutputs, values = l.genInputValues()
         self.mresult.setValueTable(countInputs, countOutputs, values)
-        return
 
-    def setStatus(self, status):
-        # mainwin.statusBar().showMessage(status)
-        pass
-
-    def __init__(self):
+    def __init__(self, fn_status):
         super().__init__()
 
+        self.setStatus = fn_status
         self.setMinimumHeight(500)
         self.setMinimumWidth(800)
         self.mcanvas = MCanvas(self)
