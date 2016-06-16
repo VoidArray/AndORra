@@ -26,7 +26,7 @@ class CentralWidget(QWidget):
         self.mcanvas.elements = pickle.load(f)
         self.mcanvas.wires = pickle.load(f)
         f.close()
-        self.setStatus('Схема загружена' + fileName)
+        self.setStatus('Схема загружена ' + fileName)
         return
 
     def saveFileDialog(self):
@@ -49,10 +49,12 @@ class CentralWidget(QWidget):
             e = self.mcanvas.elements[t]
             input_id = list()
             output_id = list()
-
             # if len(e.link) < len(e.coord_conn):  # не все входы-выходы заполнены у элемента
-            #     print('wrong connection', e.id)
-            #     continue
+            for l in e.link:
+                if len(e.link[l]) == 0:
+                    print('wrong connection', e.id)
+                    self.setStatus('Некоторые контакты не соединены')
+                    return -1
 
             for j, w in enumerate(self.mcanvas.wires):
                 if w['id1'] == e.id:
@@ -74,13 +76,15 @@ class CentralWidget(QWidget):
 
         file.close()
         self.setStatus('Logic saved')
+        return 1
 
     def calc(self):
-        self.saveLogic()
-        l = MainLogic(self)
-        l.fileParser()
-        countInputs, countOutputs, values = l.genInputValues()
-        self.mresult.setValueTable(countInputs, countOutputs, values)
+        success = self.saveLogic()
+        if success > 0:
+            l = MainLogic(self)
+            l.fileParser()
+            countInputs, countOutputs, values = l.genInputValues()
+            self.mresult.setValueTable(countInputs, countOutputs, values)
 
     def __init__(self, fn_status):
         super().__init__()

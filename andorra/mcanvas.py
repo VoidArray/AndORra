@@ -187,43 +187,45 @@ class MCanvas(QWidget):
                 print("Type true")
                 elem1 = self.elements[self.wire_begin["id"]]
                 elem2 = self.elements[self.selected_connection["id"]]
-
-                # if self.selected_connection["num"] in elem2.link:
-                #     if self.selected_connection["type"] != "out":  # исходящих может быть любое количество
-                #         self.delOneWire(elem2.id, elem2.link[self.selected_connection["num"]][0])
-                #         print("ReWrite value at conn")
-                #         elem2.link[self.selected_connection["num"]] = list()
-                #     (elem2.link[self.selected_connection["num"]]).append(elem1.id)
-                # else:
-                #     elem2.link[self.selected_connection["num"]] = [elem1.id, ]
-                print('count check')
-                if self.wire_begin["num"] in elem1.link:
-                    if self.wire_begin["type"] != "out":  # исходящих может быть любое количество
-                        self.delOneWire(elem1.id, elem1.link[self.wire_begin["num"]][0])
-                        print("ReWrite value at conn")
-                        elem1.link[self.wire_begin["num"]] = list()
-                    (elem1.link[self.wire_begin["num"]]).append(elem2.id)
+                if elem1.id != elem2.id:
+                    if self.selected_connection["num"] in elem2.link:
+                        if self.selected_connection["type"] != "out":  # исходящих может быть любое количество
+                            self.delOneWire(elem2.id, elem2.link[self.selected_connection["num"]][0])
+                            print("ReWrite value at conn")
+                            elem2.link[self.selected_connection["num"]] = list()
+                        (elem2.link[self.selected_connection["num"]]).append(elem1.id)
+                    else:
+                        elem2.link[self.selected_connection["num"]] = [elem1.id, ]
+                    print('count check')
+                    if self.wire_begin["num"] in elem1.link:
+                        if self.wire_begin["type"] != "out":  # исходящих может быть любое количество
+                            self.delOneWire(elem1.id, elem1.link[self.wire_begin["num"]][0])
+                            print("ReWrite value at conn")
+                            elem1.link[self.wire_begin["num"]] = list()
+                        (elem1.link[self.wire_begin["num"]]).append(elem2.id)
+                    else:
+                        elem1.link[self.wire_begin["num"]] = [elem2.id, ]
+                    print('count check 2')
+                    self.wires.append({"id2": elem2.id, "id1": elem1.id,
+                                       "num2": self.selected_connection["num"],
+                                       "num1": self.wire_begin["num"],
+                                       "coordX2": elem2.coordX + elem2.coord_conn[self.selected_connection["num"]][
+                                                                     0] * self.DELTA,
+                                       "coordY2": elem2.coordY + elem2.coord_conn[self.selected_connection["num"]][
+                                                                     1] * self.DELTA,
+                                       "coordX1": elem1.coordX + elem1.coord_conn[self.wire_begin["num"]][0] * self.DELTA,
+                                       "coordY1": elem1.coordY + elem1.coord_conn[self.wire_begin["num"]][1] * self.DELTA
+                                       })
+                    #
+                    self.click_type = ""
+                    self.draggin_idx = -1
+                    self.parent.setStatus("Соединение создано")
+                    self.wire_begin.clear()
+                    print("wire created", self.draggin_idx)
                 else:
-                    elem1.link[self.wire_begin["num"]] = [elem2.id, ]
-                print('count check 2')
-                self.wires.append({"id2": elem2.id, "id1": elem1.id,
-                                   "num2": self.selected_connection["num"],
-                                   "num1": self.wire_begin["num"],
-                                   "coordX2": elem2.coordX + elem2.coord_conn[self.selected_connection["num"]][
-                                                                 0] * self.DELTA,
-                                   "coordY2": elem2.coordY + elem2.coord_conn[self.selected_connection["num"]][
-                                                                 1] * self.DELTA,
-                                   "coordX1": elem1.coordX + elem1.coord_conn[self.wire_begin["num"]][0] * self.DELTA,
-                                   "coordY1": elem1.coordY + elem1.coord_conn[self.wire_begin["num"]][1] * self.DELTA
-                                   })
-                #
-                self.click_type = ""
-                self.draggin_idx = -1
-                self.parent.setStatus("Соединение создано")
-                self.wire_begin.clear()
-                print("wire created", self.draggin_idx)
+                    self.parent.setStatus("Соединять необходимо два разных элемента")
             else:
-                self.parent.setStatus("Соединять нужно вход к выходу или наоборот.")
+                self.parent.setStatus("Соединять необходимо вход к выходу или наоборот.")
 
         if evt.button() == QtCore.Qt.LeftButton and self.draggin_idx == -1 and \
                 (self.click_type == "" or self.click_type == "WIRE"):  # выделение элемента или начало построения провода
